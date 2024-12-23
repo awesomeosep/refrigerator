@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:drawing_app/getImageDimensions.dart';
+import 'package:drawing_app/grid_over_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -13,27 +15,35 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  List<XFile>? _mediaFileList;
-
-  void _setImageFileListFromFile(XFile? value) {
-    _mediaFileList = value == null ? null : <XFile>[value];
-  }
+  XFile? selectedFile;
+  Size? selectedFileSize;
 
   dynamic _pickImageError;
 
   String? _retrieveDataError;
 
-  // bool addGridLinesPopupShowing = false;
-
   final ImagePicker _picker = ImagePicker();
 
-  final TextEditingController gridRowsController = TextEditingController();
-  final TextEditingController gridColumnsController = TextEditingController();
+  int gridRows = 8;
+  int gridColumns = 12;
 
+  TextEditingController gridRowsController = TextEditingController(text: "8");
+  TextEditingController gridColumnsController = TextEditingController(text: "12");
 
-  // void addGridLines () {
-
-  // }
+  void setSelectedFileVars(XFile? file) async {
+    // Size? dimensions;
+    // if (file != null) {
+    //   dimensions = await getImageDimensions(File(file.path));
+    // } else {
+    //   dimensions = null;
+    // }
+    setState(() {
+      selectedFile = file;
+      // selectedFileSize = dimensions;
+    });
+    // print(selectedFileSize?.width);
+    // print(selectedFileSize?.height);
+  }
 
   Future<void> showGridLinesPopup() async {
     return showDialog<void>(
@@ -47,26 +57,24 @@ class _HomePageState extends State<HomePage> {
               children: <Widget>[
                 const Text('Add grid lines to the image'),
                 const SizedBox(height: 16.0),
-                Expanded(
-                  child: Wrap(spacing: 8.0, runSpacing: 8.0, direction: Axis.horizontal, children: [
-                    TextField(
-                      controller: gridRowsController,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                        hintText: '# Rows',
-                      ),
+                Wrap(spacing: 8.0, runSpacing: 8.0, direction: Axis.horizontal, children: [
+                  TextField(
+                    controller: gridRowsController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      hintText: '# Rows',
                     ),
-                    TextField(
-                      controller: gridColumnsController,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                        hintText: '# Columns',
-                      ),
+                  ),
+                  TextField(
+                    controller: gridColumnsController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      hintText: '# Columns',
                     ),
-                  ]),
-                )
+                  ),
+                ])
               ],
             ),
           ),
@@ -74,6 +82,18 @@ class _HomePageState extends State<HomePage> {
             TextButton(
               child: const Text('Update grid lines'),
               onPressed: () {
+                int rowsParsed = int.tryParse(gridRowsController.text) ?? 1;
+                int columnsParsed = int.tryParse(gridColumnsController.text) ?? 1;
+                if (rowsParsed < 1) {
+                  rowsParsed = 1;
+                }
+                if (columnsParsed < 1) {
+                  columnsParsed = 1;
+                }
+                setState(() {
+                  gridRows = rowsParsed;
+                  gridColumns = columnsParsed;
+                });
                 Navigator.of(context).pop();
               },
             ),
@@ -93,7 +113,7 @@ class _HomePageState extends State<HomePage> {
           source: source,
         );
         setState(() {
-          _setImageFileListFromFile(pickedFile);
+          setSelectedFileVars(pickedFile);
         });
       } catch (e) {
         setState(() {
@@ -108,24 +128,20 @@ class _HomePageState extends State<HomePage> {
     if (retrieveError != null) {
       return retrieveError;
     }
-    if (_mediaFileList != null) {
-      return ListView.builder(
-        key: UniqueKey(),
-        itemBuilder: (BuildContext context, int index) {
-          return InteractiveViewer(
-              boundaryMargin: const EdgeInsets.all(20.0), // Margin around the content
-              minScale: 0.5, // Minimum scale (zoom out)
-              maxScale: 4.0, //
-              child: kIsWeb
-                  ? Image.network(_mediaFileList![index].path)
-                  : Image.file(
-                      File(_mediaFileList![index].path),
-                      errorBuilder: (BuildContext context, Object error, StackTrace? stackTrace) {
-                        return const Center(child: Text('This image type is not supported'));
-                      },
-                    ));
-        },
-        itemCount: _mediaFileList!.length,
+    if (selectedFile != null) {
+      return InteractiveViewer(
+        boundaryMargin: const EdgeInsets.all(20.0), // Margin around the content
+        minScale: 0.5, // Minimum scale (zoom out)
+        maxScale: 4.0, //
+        child: GridOverImage(
+          image: selectedFile!,
+          // width: selectedFileSize!.width,
+          // height: selectedFileSize!.height, // Replace with your image path
+          rows: gridRows,
+          columns: gridColumns,
+          gridColor: Colors.red,
+          gridLineWidth: 1,
+        ),
       );
     } else if (_pickImageError != null) {
       return Text(
@@ -147,11 +163,7 @@ class _HomePageState extends State<HomePage> {
     }
     if (response.file != null) {
       setState(() {
-        if (response.files == null) {
-          _setImageFileListFromFile(response.file);
-        } else {
-          _mediaFileList = response.files;
-        }
+        setSelectedFileVars(response.files?[0]);
       });
     } else {
       _retrieveDataError = response.exception!.code;
@@ -199,7 +211,7 @@ class _HomePageState extends State<HomePage> {
       floatingActionButton: Column(
         mainAxisAlignment: MainAxisAlignment.end,
         children: <Widget>[
-          if (_mediaFileList != null)
+          if (selectedFile != null)
             Padding(
               padding: const EdgeInsets.only(bottom: 16.0),
               child: FloatingActionButton(
