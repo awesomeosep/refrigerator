@@ -32,7 +32,7 @@ class GridOverImage extends StatefulWidget {
 
 class _GridOverImageState extends State<GridOverImage> {
   Size? actualImageSize;
-  bool _imageLoaded = false;
+  // bool _imageLoaded = false;
 
   Future<void> _getImageSize(BuildContext context) async {
     final RenderBox renderBox = context.findRenderObject() as RenderBox;
@@ -44,7 +44,7 @@ class _GridOverImageState extends State<GridOverImage> {
     } else {
       setState(() {
         actualImageSize = renderBox.size;
-        _imageLoaded = true;
+        // _imageLoaded = true;
       });
     }
   }
