@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:io';
 
+import 'package:drawing_app/get_image_dimensions.dart';
 import 'package:drawing_app/grid_over_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -34,18 +36,18 @@ class _HomePageState extends State<HomePage> {
   TextEditingController gridLineWidthController = TextEditingController(text: "1");
 
   void setSelectedFileVars(XFile? file) async {
-    // Size? dimensions;
-    // if (file != null) {
-    //   dimensions = await getImageDimensions(File(file.path));
-    // } else {
-    //   dimensions = null;
-    // }
+    Size? dimensions;
+    if (file != null) {
+      dimensions = await getImageDimensions(File(file.path));
+    } else {
+      dimensions = null;
+    }
     setState(() {
       selectedFile = file;
-      // selectedFileSize = dimensions;
+      selectedFileSize = dimensions;
     });
-    // print(selectedFileSize?.width);
-    // print(selectedFileSize?.height);
+    print(selectedFileSize?.width);
+    print(selectedFileSize?.height);
   }
 
   Future<void> showGridLinesPopup() async {
@@ -213,10 +215,12 @@ class _HomePageState extends State<HomePage> {
     }
     if (selectedFile != null) {
       return InteractiveViewer(
-        boundaryMargin: const EdgeInsets.all(20.0), // Margin around the content
+        clipBehavior: Clip.none,
+        boundaryMargin: const EdgeInsets.all(24.0), // Margin around the content
         minScale: 0.5, // Minimum scale (zoom out)
         maxScale: 4.0, //
         child: GridOverImage(
+          originalSize: selectedFileSize!,
           image: selectedFile!,
           // width: selectedFileSize!.width,
           // height: selectedFileSize!.height, // Replace with your image path
@@ -260,36 +264,39 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: Colors.indigo[400],
         title: const Text("Edit image", style: TextStyle(color: Colors.white)),
       ),
-      body: Center(
-        child: !kIsWeb && defaultTargetPlatform == TargetPlatform.android
-            ? FutureBuilder<void>(
-                future: retrieveLostData(),
-                builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
-                  switch (snapshot.connectionState) {
-                    case ConnectionState.none:
-                    case ConnectionState.waiting:
-                      return const Text(
-                        'You have not yet picked an image.',
-                        textAlign: TextAlign.center,
-                      );
-                    case ConnectionState.done:
-                      return _previewImages();
-                    case ConnectionState.active:
-                      if (snapshot.hasError) {
-                        return Text(
-                          'Pick image/video error: ${snapshot.error}}',
-                          textAlign: TextAlign.center,
-                        );
-                      } else {
+      body: Padding(
+        padding: const EdgeInsets.all(0),
+        child: Center(
+          child: !kIsWeb && defaultTargetPlatform == TargetPlatform.android
+              ? FutureBuilder<void>(
+                  future: retrieveLostData(),
+                  builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
+                    switch (snapshot.connectionState) {
+                      case ConnectionState.none:
+                      case ConnectionState.waiting:
                         return const Text(
                           'You have not yet picked an image.',
                           textAlign: TextAlign.center,
                         );
-                      }
-                  }
-                },
-              )
-            : _previewImages(),
+                      case ConnectionState.done:
+                        return _previewImages();
+                      case ConnectionState.active:
+                        if (snapshot.hasError) {
+                          return Text(
+                            'Pick image/video error: ${snapshot.error}}',
+                            textAlign: TextAlign.center,
+                          );
+                        } else {
+                          return const Text(
+                            'You have not yet picked an image.',
+                            textAlign: TextAlign.center,
+                          );
+                        }
+                    }
+                  },
+                )
+              : _previewImages(),
+        ),
       ),
       floatingActionButton: Column(
         mainAxisAlignment: MainAxisAlignment.end,
