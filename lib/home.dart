@@ -49,7 +49,7 @@ class _HomePageState extends State<HomePage> {
       barrierDismissible: false, // user must tap button!
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Grid Lines'),
+          // title: const Text('Grid Lines'),
           content: SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
@@ -60,16 +60,19 @@ class _HomePageState extends State<HomePage> {
                     controller: gridRowsController,
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(
+                      floatingLabelBehavior: FloatingLabelBehavior.always,
                       border: OutlineInputBorder(),
-                      hintText: '# Rows',
+                      labelText: '# Rows',
                     ),
                   ),
+                  const SizedBox(height: 8),
                   TextField(
                     controller: gridColumnsController,
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(
+                      floatingLabelBehavior: FloatingLabelBehavior.always,
                       border: OutlineInputBorder(),
-                      hintText: '# Columns',
+                      labelText: '# Columns',
                     ),
                   ),
                 ])
@@ -78,7 +81,7 @@ class _HomePageState extends State<HomePage> {
           ),
           actions: <Widget>[
             TextButton(
-              child: const Text('Update grid lines'),
+              child: const Text('Update'),
               onPressed: () {
                 int rowsParsed = int.tryParse(gridRowsController.text) ?? 1;
                 int columnsParsed = int.tryParse(gridColumnsController.text) ?? 1;
