@@ -4,26 +4,30 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
-class GridOverImage extends StatefulWidget {
-  final XFile image;
+class GridOptions {
   final Size originalSize;
-  // final double width;
-  // final double height;
   final int rows;
   final int columns;
   final Color gridColor;
   final double gridLineWidth;
 
+  const GridOptions({
+    required this.originalSize,
+    required this.rows,
+    required this.columns,
+    this.gridColor = Colors.red,
+    this.gridLineWidth = 1.0,
+  });
+}
+
+class GridOverImage extends StatefulWidget {
+  final XFile image;
+  final GridOptions gridOptions;
+
   const GridOverImage({
     super.key,
     required this.image,
-    required this.originalSize,
-    // required this.width,
-    // required this.height,
-    required this.rows,
-    required this.columns,
-    this.gridColor = Colors.grey,
-    this.gridLineWidth = 1.0,
+    required this.gridOptions,
   });
 
   @override
@@ -72,11 +76,11 @@ class _GridOverImageState extends State<GridOverImage> {
   @override
   Widget build(BuildContext context) {
     return AspectRatio(
-      aspectRatio: widget.originalSize.aspectRatio,
+      aspectRatio: widget.gridOptions.originalSize.aspectRatio,
       child: Stack(
         children: [
           ConstrainedBox(
-            constraints: BoxConstraints.expand(),
+            constraints: const BoxConstraints.expand(),
             child: LayoutBuilder(builder: (BuildContext context, BoxConstraints constraints) {
               return kIsWeb
                   ? Image.network(fit: BoxFit.contain, widget.image.path, frameBuilder: imageFrameBuilder)
@@ -109,34 +113,34 @@ class _GridOverImageState extends State<GridOverImage> {
             }),
           ),
           if (actualImageSize != null)
-            Positioned.fill(
-                child: gridLines(actualImageSize!.width, actualImageSize!.height, widget.rows, widget.columns,
-                    widget.gridColor, widget.gridLineWidth))
+            Positioned.fill(child: gridLines(actualImageSize!.width, actualImageSize!.height, widget.gridOptions))
         ],
       ),
     );
   }
 }
 
-Widget gridLines(final double width, final double height, final int rows, final int columns, final Color gridColor,
-    final double gridLineWidth) {
+Widget gridLines(final double width, final double height, final GridOptions gridOptions) {
   return SizedBox(
       width: width,
       height: height,
-      child: GridView.count(
-          childAspectRatio: ((width) / columns) / ((height) / rows),
+      child: GridView.builder(
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: gridOptions.columns,
+            childAspectRatio: ((width) / gridOptions.columns) / ((height) / gridOptions.rows),
+          ),
+          itemCount: gridOptions.rows * gridOptions.columns,
           primary: false,
           padding: const EdgeInsets.all(0),
-          crossAxisCount: columns,
-          children: List.generate(rows * columns, (int index) {
+          itemBuilder: (context, index) {
             return SizedBox(
-              width: ((width - columns * gridLineWidth) / columns),
-              height: ((height - rows * gridLineWidth) / rows),
+              width: ((width - gridOptions.columns * gridOptions.gridLineWidth) / gridOptions.columns),
+              height: ((height - gridOptions.rows * gridOptions.gridLineWidth) / gridOptions.rows),
               child: Container(
-                decoration: BoxDecoration(border: Border.all(color: gridColor, width: gridLineWidth / 2)),
-                // padding: const EdgeInsets.all(8),
-                // color: Colors.teal[100],
+                decoration: BoxDecoration(
+                    border: Border.all(color: gridOptions.gridColor, width: gridOptions.gridLineWidth / 2)),
               ),
             );
-          }).toList()));
+          }));
 }

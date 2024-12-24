@@ -220,14 +220,13 @@ class _HomePageState extends State<HomePage> {
         minScale: 0.5, // Minimum scale (zoom out)
         maxScale: 4.0, //
         child: GridOverImage(
-          originalSize: selectedFileSize!,
           image: selectedFile!,
-          // width: selectedFileSize!.width,
-          // height: selectedFileSize!.height, // Replace with your image path
-          rows: gridRows,
-          columns: gridColumns,
-          gridColor: gridLineColor,
-          gridLineWidth: gridLineWidth,
+          gridOptions: GridOptions(
+              originalSize: selectedFileSize!,
+              rows: gridRows,
+              columns: gridColumns,
+              gridColor: gridLineColor,
+              gridLineWidth: gridLineWidth),
         ),
       );
     } else if (_pickImageError != null) {
