@@ -1,7 +1,5 @@
 import 'dart:async';
-import 'dart:io';
 
-import 'package:drawing_app/getImageDimensions.dart';
 import 'package:drawing_app/grid_over_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';

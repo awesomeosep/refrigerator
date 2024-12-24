@@ -13,7 +13,7 @@ class GridOverImage extends StatefulWidget {
   final Color gridColor;
   final double gridLineWidth;
 
-  GridOverImage({
+  const GridOverImage({
     super.key,
     required this.image,
     // required this.width,
@@ -38,11 +38,31 @@ class _GridOverImageState extends State<GridOverImage> {
     final RenderBox renderBox = context.findRenderObject() as RenderBox;
     print("width ${renderBox.size.width.toString()}");
     print("width ${(renderBox.size.width / 12).toString()}");
-    print("height ${(renderBox.size.height / 8).toString()}");
+    print("height ${(renderBox.size.height / 4).toString()}");
     setState(() {
-      actualImageSize = Size(renderBox.size.width, renderBox.size.height);
+      actualImageSize = renderBox.size;
       _imageLoaded = true;
     });
+  }
+
+  Widget imageFrameBuilder(BuildContext context, Widget child, int? frame, bool wasSynchronouslyLoaded) {
+    if (wasSynchronouslyLoaded) {
+      // Image loaded synchronously
+      print('Image loaded synchronously');
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _getImageSize(context);
+      });
+    } else if (frame != null) {
+      // Image loaded asynchronously, and a frame is available
+      print('Image frame loaded');
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _getImageSize(context);
+      });
+    } else {
+      // Image is still loading
+      print('Image still loading');
+    }
+    return child;
   }
 
   @override
@@ -51,22 +71,7 @@ class _GridOverImageState extends State<GridOverImage> {
       children: [
         LayoutBuilder(builder: (BuildContext context, BoxConstraints constraints) {
           return kIsWeb
-              ? Image.network(widget.image.path, frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-                  if (wasSynchronouslyLoaded) {
-                    // Image loaded synchronously
-                    print('Image loaded synchronously');
-                  } else if (frame != null) {
-                    // Image loaded asynchronously, and a frame is available
-                    print('Image frame loaded');
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      _getImageSize(context);
-                    });
-                  } else {
-                    // Image is still loading
-                    print('Image still loading');
-                  }
-                  return child;
-                })
+              ? Image.network(widget.image.path, frameBuilder: imageFrameBuilder)
               : Image.file(
                   File(widget.image.path),
                   errorBuilder: (BuildContext context, Object error, StackTrace? stackTrace) {
@@ -76,6 +81,9 @@ class _GridOverImageState extends State<GridOverImage> {
                     if (wasSynchronouslyLoaded) {
                       // Image loaded synchronously
                       print('Image loaded synchronously');
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        _getImageSize(context);
+                      });
                     } else if (frame != null) {
                       // Image loaded asynchronously, and a frame is available
                       print('Image frame loaded');
@@ -99,43 +107,25 @@ class _GridOverImageState extends State<GridOverImage> {
   }
 }
 
-Widget gridLines(final double? width, final double? height, final int rows, final int columns, final Color gridColor,
+Widget gridLines(final double width, final double height, final int rows, final int columns, final Color gridColor,
     final double gridLineWidth) {
   return SizedBox(
-    width: width,
-    height: height,
-    child: Stack(
-      children: [
-        Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(
-                columns - 1,
-                (i) => Row(mainAxisAlignment: MainAxisAlignment.start, children: [
-                      SizedBox(width: (width! - rows*gridLineWidth) / columns / 2),
-                      VerticalDivider(
-                        width: gridLineWidth,
-                        color: gridColor,
-                        thickness: gridLineWidth,
-                      ),
-                      SizedBox(width: (width - rows*gridLineWidth) / columns / 2),
-                    ])).toList()),
-        Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(
-                rows - 1,
-                (i) => Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        SizedBox(height: (height! - rows*gridLineWidth) / rows / 2),
-                        Divider(
-                          height: gridLineWidth,
-                          color: gridColor,
-                          thickness: gridLineWidth,
-                        ),
-                        SizedBox(height: (height - rows*gridLineWidth) / rows / 2),
-                      ],
-                    )).toList())
-      ],
-    ),
-  );
+      width: width,
+      height: height,
+      child: GridView.count(
+          childAspectRatio: ((width) / columns) / ((height) / rows),
+          primary: false,
+          padding: const EdgeInsets.all(0),
+          crossAxisCount: columns,
+          children: List.generate(rows * columns, (int index) {
+            return SizedBox(
+              width: ((width - columns * gridLineWidth) / columns),
+              height: ((height - rows * gridLineWidth) / rows),
+              child: Container(
+                decoration: BoxDecoration(border: Border.all(color: gridColor, width: gridLineWidth / 2)),
+                // padding: const EdgeInsets.all(8),
+                // color: Colors.teal[100],
+              ),
+            );
+          }).toList()));
 }
