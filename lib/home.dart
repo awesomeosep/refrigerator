@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:drawing_app/grid_over_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:image_picker/image_picker.dart';
 
 class HomePage extends StatefulWidget {
@@ -24,9 +25,13 @@ class _HomePageState extends State<HomePage> {
 
   int gridRows = 8;
   int gridColumns = 12;
+  double gridLineWidth = 1;
+  Color gridLineColor = Colors.red;
+  Color popupCurrentColor = Colors.red;
 
   TextEditingController gridRowsController = TextEditingController(text: "8");
   TextEditingController gridColumnsController = TextEditingController(text: "12");
+  TextEditingController gridLineWidthController = TextEditingController(text: "1");
 
   void setSelectedFileVars(XFile? file) async {
     // Size? dimensions;
@@ -48,53 +53,130 @@ class _HomePageState extends State<HomePage> {
       context: context,
       barrierDismissible: false, // user must tap button!
       builder: (BuildContext context) {
+        Color popupCurrentColor2 = gridLineColor;
+
         return AlertDialog(
           // title: const Text('Grid Lines'),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: <Widget>[
-                const Text('Add grid lines to the image'),
-                const SizedBox(height: 16.0),
-                Wrap(spacing: 8.0, runSpacing: 8.0, direction: Axis.horizontal, children: [
-                  TextField(
-                    controller: gridRowsController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      floatingLabelBehavior: FloatingLabelBehavior.always,
-                      border: OutlineInputBorder(),
-                      labelText: '# Rows',
+          content: StatefulBuilder(builder: (BuildContext context, StateSetter setState) {
+            return SingleChildScrollView(
+              child: ListBody(
+                children: <Widget>[
+                  const Text('Add grid lines to the image'),
+                  const SizedBox(height: 16.0),
+                  Wrap(spacing: 8.0, runSpacing: 8.0, direction: Axis.horizontal, children: [
+                    TextField(
+                      controller: gridRowsController,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                        floatingLabelBehavior: FloatingLabelBehavior.always,
+                        border: OutlineInputBorder(),
+                        labelText: '# Rows',
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  TextField(
-                    controller: gridColumnsController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      floatingLabelBehavior: FloatingLabelBehavior.always,
-                      border: OutlineInputBorder(),
-                      labelText: '# Columns',
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: gridColumnsController,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                        floatingLabelBehavior: FloatingLabelBehavior.always,
+                        border: OutlineInputBorder(),
+                        labelText: '# Columns',
+                      ),
                     ),
-                  ),
-                ])
-              ],
-            ),
-          ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: gridLineWidthController,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                        floatingLabelBehavior: FloatingLabelBehavior.always,
+                        border: OutlineInputBorder(),
+                        labelText: 'Line Thickness',
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        SizedBox(
+                            width: 36,
+                            height: 36,
+                            child: Stack(children: [
+                              Container(
+                                decoration: const BoxDecoration(
+                                  image: DecorationImage(
+                                    image: ExactAssetImage('assets/checkered_transparent_2.jpg'),
+                                    fit: BoxFit.cover,
+                                  ),
+                                  borderRadius: BorderRadius.all(Radius.circular(100)),
+                                ),
+                              ),
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: popupCurrentColor2,
+                                  borderRadius: const BorderRadius.all(Radius.circular(100)),
+                                ),
+                              ),
+                            ])),
+                        const SizedBox(width: 8),
+                        TextButton(
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return AlertDialog(
+                                    title: const Text('Choose a color'),
+                                    content: SingleChildScrollView(
+                                      child: ColorPicker(
+                                          pickerColor: popupCurrentColor2,
+                                          onColorChanged: (color) {
+                                            setState(() {
+                                              popupCurrentColor2 = color;
+                                              print(popupCurrentColor2);
+                                            });
+                                          }),
+                                    ),
+                                    actions: <Widget>[
+                                      ElevatedButton(
+                                        child: const Text('Save'),
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        },
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+                            },
+                            child: const Text("Change line color"))
+                      ],
+                    ),
+                  ])
+                ],
+              ),
+            );
+          }),
           actions: <Widget>[
             TextButton(
               child: const Text('Update'),
               onPressed: () {
                 int rowsParsed = int.tryParse(gridRowsController.text) ?? 1;
                 int columnsParsed = int.tryParse(gridColumnsController.text) ?? 1;
+                double lineWidthParsed = double.tryParse(gridLineWidthController.text) ?? 1;
                 if (rowsParsed < 1) {
                   rowsParsed = 1;
                 }
                 if (columnsParsed < 1) {
                   columnsParsed = 1;
                 }
+                if (lineWidthParsed <= 0) {
+                  lineWidthParsed = 0.1;
+                }
                 setState(() {
                   gridRows = rowsParsed;
                   gridColumns = columnsParsed;
+                  gridLineWidth = lineWidthParsed;
+                  gridLineColor = popupCurrentColor2;
                 });
+                print(gridLineColor);
                 Navigator.of(context).pop();
               },
             ),
@@ -140,8 +222,8 @@ class _HomePageState extends State<HomePage> {
           // height: selectedFileSize!.height, // Replace with your image path
           rows: gridRows,
           columns: gridColumns,
-          gridColor: Colors.red,
-          gridLineWidth: 1,
+          gridColor: gridLineColor,
+          gridLineWidth: gridLineWidth,
         ),
       );
     } else if (_pickImageError != null) {
