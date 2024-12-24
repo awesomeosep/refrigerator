@@ -176,7 +176,7 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.indigo[400],
-        title: const Text("Upload image", style: TextStyle(color: Colors.white)),
+        title: const Text("Edit image", style: TextStyle(color: Colors.white)),
       ),
       body: Center(
         child: !kIsWeb && defaultTargetPlatform == TargetPlatform.android
