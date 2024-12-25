@@ -10,6 +10,7 @@ class GridOptions {
   final int columns;
   final Color gridColor;
   final double gridLineWidth;
+  final bool gridShowing;
 
   const GridOptions({
     required this.originalSize,
@@ -17,6 +18,7 @@ class GridOptions {
     required this.columns,
     this.gridColor = Colors.red,
     this.gridLineWidth = 1.0,
+    this.gridShowing = false,
   });
 }
 
@@ -40,8 +42,8 @@ class _GridOverImageState extends State<GridOverImage> {
 
   Future<void> _getImageSize(BuildContext context) async {
     final RenderBox renderBox = context.findRenderObject() as RenderBox;
-    print("width ${renderBox.size.width.toString()}");
-    print("height ${(renderBox.size.height).toString()}");
+    // print("width ${renderBox.size.width.toString()}");
+    // print("height ${(renderBox.size.height).toString()}");
 
     if (renderBox.size == actualImageSize) {
       return;
@@ -56,19 +58,19 @@ class _GridOverImageState extends State<GridOverImage> {
   Widget imageFrameBuilder(BuildContext context, Widget child, int? frame, bool wasSynchronouslyLoaded) {
     if (wasSynchronouslyLoaded) {
       // Image loaded synchronously
-      print('Image loaded synchronously');
+      // print('Image loaded synchronously');
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _getImageSize(context);
       });
     } else if (frame != null) {
       // Image loaded asynchronously, and a frame is available
-      print('Image frame loaded');
+      // print('Image frame loaded');
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _getImageSize(context);
       });
     } else {
       // Image is still loading
-      print('Image still loading');
+      // print('Image still loading');
     }
     return child;
   }
@@ -93,26 +95,26 @@ class _GridOverImageState extends State<GridOverImage> {
                       frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
                         if (wasSynchronouslyLoaded) {
                           // Image loaded synchronously
-                          print('Image loaded synchronously');
+                          // print('Image loaded synchronously');
                           WidgetsBinding.instance.addPostFrameCallback((_) {
                             _getImageSize(context);
                           });
                         } else if (frame != null) {
                           // Image loaded asynchronously, and a frame is available
-                          print('Image frame loaded');
+                          // print('Image frame loaded');
                           WidgetsBinding.instance.addPostFrameCallback((_) {
                             _getImageSize(context);
                           });
                         } else {
                           // Image is still loading
-                          print('Image still loading');
+                          // print('Image still loading');
                         }
                         return child;
                       },
                     );
             }),
           ),
-          if (actualImageSize != null)
+          if (actualImageSize != null && widget.gridOptions.gridShowing)
             Positioned.fill(child: gridLines(actualImageSize!.width, actualImageSize!.height, widget.gridOptions))
         ],
       ),

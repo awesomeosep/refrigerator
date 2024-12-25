@@ -25,6 +25,7 @@ class _HomePageState extends State<HomePage> {
 
   final ImagePicker _picker = ImagePicker();
 
+  bool showGrid = false;
   int gridRows = 8;
   int gridColumns = 12;
   double gridLineWidth = 1;
@@ -46,8 +47,8 @@ class _HomePageState extends State<HomePage> {
       selectedFile = file;
       selectedFileSize = dimensions;
     });
-    print(selectedFileSize?.width);
-    print(selectedFileSize?.height);
+    // print(selectedFileSize?.width);
+    // print(selectedFileSize?.height);
   }
 
   Future<void> showGridLinesPopup() async {
@@ -63,94 +64,106 @@ class _HomePageState extends State<HomePage> {
             return SingleChildScrollView(
               child: ListBody(
                 children: <Widget>[
-                  const Text('Add grid lines to the image'),
-                  const SizedBox(height: 16.0),
                   Wrap(spacing: 8.0, runSpacing: 8.0, direction: Axis.horizontal, children: [
-                    TextField(
-                      controller: gridRowsController,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        floatingLabelBehavior: FloatingLabelBehavior.always,
-                        border: OutlineInputBorder(),
-                        labelText: '# Rows',
-                      ),
+                    CheckboxListTile(
+                      contentPadding: const EdgeInsets.all(0),
+                      dense: true,
+                      title: const Text('Show grid'),
+                      value: showGrid,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          showGrid = !showGrid;
+                        });
+                      },
                     ),
-                    const SizedBox(height: 8),
-                    TextField(
-                      controller: gridColumnsController,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        floatingLabelBehavior: FloatingLabelBehavior.always,
-                        border: OutlineInputBorder(),
-                        labelText: '# Columns',
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    TextField(
-                      controller: gridLineWidthController,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        floatingLabelBehavior: FloatingLabelBehavior.always,
-                        border: OutlineInputBorder(),
-                        labelText: 'Line Thickness',
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        SizedBox(
-                            width: 36,
-                            height: 36,
-                            child: Stack(children: [
-                              Container(
-                                decoration: const BoxDecoration(
-                                  image: DecorationImage(
-                                    image: ExactAssetImage('assets/checkered_transparent_2.jpg'),
-                                    fit: BoxFit.cover,
-                                  ),
-                                  borderRadius: BorderRadius.all(Radius.circular(100)),
-                                ),
-                              ),
-                              Container(
-                                decoration: BoxDecoration(
-                                  color: popupCurrentColor2,
-                                  borderRadius: const BorderRadius.all(Radius.circular(100)),
-                                ),
-                              ),
-                            ])),
-                        const SizedBox(width: 8),
-                        TextButton(
-                            onPressed: () {
-                              showDialog(
-                                context: context,
-                                builder: (BuildContext context) {
-                                  return AlertDialog(
-                                    title: const Text('Choose a color'),
-                                    content: SingleChildScrollView(
-                                      child: ColorPicker(
-                                          pickerColor: popupCurrentColor2,
-                                          onColorChanged: (color) {
-                                            setState(() {
-                                              popupCurrentColor2 = color;
-                                              print(popupCurrentColor2);
-                                            });
-                                          }),
-                                    ),
-                                    actions: <Widget>[
-                                      ElevatedButton(
-                                        child: const Text('Save'),
-                                        onPressed: () {
-                                          Navigator.of(context).pop();
-                                        },
+                    if (showGrid)
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          TextField(
+                            controller: gridRowsController,
+                            keyboardType: TextInputType.number,
+                            decoration: const InputDecoration(
+                              floatingLabelBehavior: FloatingLabelBehavior.always,
+                              labelText: '# Rows',
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          TextField(
+                            controller: gridColumnsController,
+                            keyboardType: TextInputType.number,
+                            decoration: const InputDecoration(
+                              floatingLabelBehavior: FloatingLabelBehavior.always,
+                              labelText: '# Columns',
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          TextField(
+                            controller: gridLineWidthController,
+                            keyboardType: TextInputType.number,
+                            decoration: const InputDecoration(
+                              floatingLabelBehavior: FloatingLabelBehavior.always,
+                              labelText: 'Line Thickness',
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: Stack(children: [
+                                    Container(
+                                      decoration: const BoxDecoration(
+                                        image: DecorationImage(
+                                          image: ExactAssetImage('assets/checkered_transparent_2.jpg'),
+                                          fit: BoxFit.cover,
+                                        ),
+                                        borderRadius: BorderRadius.all(Radius.circular(100)),
                                       ),
-                                    ],
-                                  );
-                                },
-                              );
-                            },
-                            child: const Text("Change line color"))
-                      ],
-                    ),
+                                    ),
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        color: popupCurrentColor2,
+                                        borderRadius: const BorderRadius.all(Radius.circular(100)),
+                                      ),
+                                    ),
+                                  ])),
+                              const SizedBox(width: 8),
+                              TextButton(
+                                  onPressed: () {
+                                    showDialog(
+                                      context: context,
+                                      builder: (BuildContext context) {
+                                        return AlertDialog(
+                                          title: const Text('Choose a color'),
+                                          content: SingleChildScrollView(
+                                            child: ColorPicker(
+                                                pickerColor: popupCurrentColor2,
+                                                onColorChanged: (color) {
+                                                  setState(() {
+                                                    popupCurrentColor2 = color;
+                                                    // print(popupCurrentColor2);
+                                                  });
+                                                }),
+                                          ),
+                                          actions: <Widget>[
+                                            ElevatedButton(
+                                              child: const Text('Save'),
+                                              onPressed: () {
+                                                Navigator.of(context).pop();
+                                              },
+                                            ),
+                                          ],
+                                        );
+                                      },
+                                    );
+                                  },
+                                  child: const Text("Change line color"))
+                            ],
+                          ),
+                        ],
+                      )
                   ])
                 ],
               ),
@@ -178,7 +191,7 @@ class _HomePageState extends State<HomePage> {
                   gridLineWidth = lineWidthParsed;
                   gridLineColor = popupCurrentColor2;
                 });
-                print(gridLineColor);
+                // print(gridLineColor);
                 Navigator.of(context).pop();
               },
             ),
@@ -217,8 +230,8 @@ class _HomePageState extends State<HomePage> {
       return InteractiveViewer(
         clipBehavior: Clip.none,
         boundaryMargin: const EdgeInsets.all(24.0), // Margin around the content
-        minScale: 0.5, // Minimum scale (zoom out)
-        maxScale: 4.0, //
+        minScale: 0.1, // Minimum scale (zoom out)
+        maxScale: 5.0, //
         child: GridOverImage(
           image: selectedFile!,
           gridOptions: GridOptions(
@@ -226,7 +239,8 @@ class _HomePageState extends State<HomePage> {
               rows: gridRows,
               columns: gridColumns,
               gridColor: gridLineColor,
-              gridLineWidth: gridLineWidth),
+              gridLineWidth: gridLineWidth,
+              gridShowing: showGrid),
         ),
       );
     } else if (_pickImageError != null) {
