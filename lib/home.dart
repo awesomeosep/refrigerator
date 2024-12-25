@@ -1,12 +1,21 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:drawing_app/default_color_filters.dart';
 import 'package:drawing_app/get_image_dimensions.dart';
-import 'package:drawing_app/grid_over_image.dart';
+import 'package:drawing_app/edited_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:image_picker/image_picker.dart';
+
+class NamedColorFilter {
+  final String name;
+  final String id;
+  final ColorFilter filter;
+
+  NamedColorFilter({required this.name, required this.id, required this.filter});
+}
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -31,10 +40,13 @@ class _HomePageState extends State<HomePage> {
   double gridLineWidth = 1;
   Color gridLineColor = Colors.red;
   Color popupCurrentColor = Colors.red;
+  String? selectedFilter;
 
   TextEditingController gridRowsController = TextEditingController(text: "8");
   TextEditingController gridColumnsController = TextEditingController(text: "12");
   TextEditingController gridLineWidthController = TextEditingController(text: "1");
+
+  List<NamedColorFilter> defaultFilters = defaultColorFilters;
 
   void setSelectedFileVars(XFile? file) async {
     Size? dimensions;
@@ -201,6 +213,53 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  Future<void> showImageFiltersPopup() async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        String? popupSelectedFilter = selectedFilter;
+
+        return AlertDialog(
+          content: StatefulBuilder(builder: (BuildContext context, StateSetter setState) {
+            return SingleChildScrollView(
+              child: ListBody(
+                  children: defaultFilters
+                      .map((item) => CheckboxListTile(
+                            contentPadding: const EdgeInsets.all(0),
+                            dense: true,
+                            title: Text(item.name),
+                            value: popupSelectedFilter == item.id,
+                            onChanged: (bool? value) {
+                              setState(() {
+                                if (value == true) {
+                                  popupSelectedFilter = item.id;
+                                } else {
+                                  popupSelectedFilter = null;
+                                }
+                              });
+                            },
+                          ))
+                      .toList()),
+            );
+          }),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Update'),
+              onPressed: () {
+                setState(() {
+                  selectedFilter = popupSelectedFilter;
+                });
+                // print(gridLineColor);
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Future<void> _onImageButtonPressed(
     ImageSource source, {
     required BuildContext context,
@@ -232,16 +291,20 @@ class _HomePageState extends State<HomePage> {
         boundaryMargin: const EdgeInsets.all(24.0), // Margin around the content
         minScale: 0.1, // Minimum scale (zoom out)
         maxScale: 5.0, //
-        child: GridOverImage(
-          image: selectedFile!,
-          gridOptions: GridOptions(
-              originalSize: selectedFileSize!,
-              rows: gridRows,
-              columns: gridColumns,
-              gridColor: gridLineColor,
-              gridLineWidth: gridLineWidth,
-              gridShowing: showGrid),
-        ),
+        child: EditedImage(
+            image: selectedFile!,
+            gridOptions: GridOptions(
+                originalSize: selectedFileSize!,
+                rows: gridRows,
+                columns: gridColumns,
+                gridColor: gridLineColor,
+                gridLineWidth: gridLineWidth,
+                gridShowing: showGrid),
+            filter: selectedFilter == null
+                ? null
+                : defaultFilters.firstWhere((item) {
+                    return item.id == selectedFilter;
+                  })),
       );
     } else if (_pickImageError != null) {
       return Text(
@@ -311,44 +374,60 @@ class _HomePageState extends State<HomePage> {
               : _previewImages(),
         ),
       ),
-      floatingActionButton: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: <Widget>[
-          if (selectedFile != null)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 16.0),
-              child: FloatingActionButton(
-                onPressed: () {
-                  setState(() {
-                    showGridLinesPopup();
-                  });
-                },
-                heroTag: 'grid0',
-                tooltip: 'Add Grid Lines',
-                child: const Icon(Icons.grid_3x3),
+      floatingActionButton: SingleChildScrollView(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: <Widget>[
+            if (selectedFile != null)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16.0),
+                child: FloatingActionButton(
+                  onPressed: () {
+                    setState(() {
+                      showImageFiltersPopup();
+                    });
+                  },
+                  heroTag: 'filters0',
+                  tooltip: 'Apply color filters',
+                  child: const Icon(Icons.filter),
+                ),
               ),
-            ),
-          FloatingActionButton(
-            onPressed: () {
-              _onImageButtonPressed(ImageSource.gallery, context: context);
-            },
-            heroTag: 'image0',
-            tooltip: 'Pick Image from gallery',
-            child: const Icon(Icons.photo),
-          ),
-          if (_picker.supportsImageSource(ImageSource.camera))
-            Padding(
-              padding: const EdgeInsets.only(top: 16.0),
-              child: FloatingActionButton(
-                onPressed: () {
-                  _onImageButtonPressed(ImageSource.camera, context: context);
-                },
-                heroTag: 'image2',
-                tooltip: 'Take a Photo',
-                child: const Icon(Icons.camera_alt),
+            if (selectedFile != null)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16.0),
+                child: FloatingActionButton(
+                  onPressed: () {
+                    setState(() {
+                      showGridLinesPopup();
+                    });
+                  },
+                  heroTag: 'grid0',
+                  tooltip: 'Add Grid Lines',
+                  child: const Icon(Icons.grid_3x3),
+                ),
               ),
+            FloatingActionButton(
+              onPressed: () {
+                _onImageButtonPressed(ImageSource.gallery, context: context);
+              },
+              heroTag: 'image0',
+              tooltip: 'Pick Image from gallery',
+              child: const Icon(Icons.photo),
             ),
-        ],
+            if (_picker.supportsImageSource(ImageSource.camera))
+              Padding(
+                padding: const EdgeInsets.only(top: 16.0),
+                child: FloatingActionButton(
+                  onPressed: () {
+                    _onImageButtonPressed(ImageSource.camera, context: context);
+                  },
+                  heroTag: 'image2',
+                  tooltip: 'Take a Photo',
+                  child: const Icon(Icons.camera_alt),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

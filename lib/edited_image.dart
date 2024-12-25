@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:drawing_app/home.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -22,21 +23,23 @@ class GridOptions {
   });
 }
 
-class GridOverImage extends StatefulWidget {
+class EditedImage extends StatefulWidget {
   final XFile image;
   final GridOptions gridOptions;
+  final NamedColorFilter? filter;
 
-  const GridOverImage({
+  const EditedImage({
     super.key,
     required this.image,
     required this.gridOptions,
+    required this.filter,
   });
 
   @override
-  State<GridOverImage> createState() => _GridOverImageState();
+  State<EditedImage> createState() => _EditedImageState();
 }
 
-class _GridOverImageState extends State<GridOverImage> {
+class _EditedImageState extends State<EditedImage> {
   Size? actualImageSize;
   // bool _imageLoaded = false;
 
@@ -84,34 +87,38 @@ class _GridOverImageState extends State<GridOverImage> {
           ConstrainedBox(
             constraints: const BoxConstraints.expand(),
             child: LayoutBuilder(builder: (BuildContext context, BoxConstraints constraints) {
-              return kIsWeb
-                  ? Image.network(fit: BoxFit.contain, widget.image.path, frameBuilder: imageFrameBuilder)
-                  : Image.file(
-                      File(widget.image.path),
-                      fit: BoxFit.contain,
-                      errorBuilder: (BuildContext context, Object error, StackTrace? stackTrace) {
-                        return const Center(child: Text('This image type is not supported'));
-                      },
-                      frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-                        if (wasSynchronouslyLoaded) {
-                          // Image loaded synchronously
-                          // print('Image loaded synchronously');
-                          WidgetsBinding.instance.addPostFrameCallback((_) {
-                            _getImageSize(context);
-                          });
-                        } else if (frame != null) {
-                          // Image loaded asynchronously, and a frame is available
-                          // print('Image frame loaded');
-                          WidgetsBinding.instance.addPostFrameCallback((_) {
-                            _getImageSize(context);
-                          });
-                        } else {
-                          // Image is still loading
-                          // print('Image still loading');
-                        }
-                        return child;
-                      },
-                    );
+              return ColorFiltered(
+                  colorFilter: (widget.filter == null)
+                      ? const ColorFilter.matrix([1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0])
+                      : widget.filter!.filter,
+                  child: kIsWeb
+                      ? Image.network(fit: BoxFit.contain, widget.image.path, frameBuilder: imageFrameBuilder)
+                      : Image.file(
+                          File(widget.image.path),
+                          fit: BoxFit.contain,
+                          errorBuilder: (BuildContext context, Object error, StackTrace? stackTrace) {
+                            return const Center(child: Text('This image type is not supported'));
+                          },
+                          frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+                            if (wasSynchronouslyLoaded) {
+                              // Image loaded synchronously
+                              // print('Image loaded synchronously');
+                              WidgetsBinding.instance.addPostFrameCallback((_) {
+                                _getImageSize(context);
+                              });
+                            } else if (frame != null) {
+                              // Image loaded asynchronously, and a frame is available
+                              // print('Image frame loaded');
+                              WidgetsBinding.instance.addPostFrameCallback((_) {
+                                _getImageSize(context);
+                              });
+                            } else {
+                              // Image is still loading
+                              // print('Image still loading');
+                            }
+                            return child;
+                          },
+                        ));
             }),
           ),
           if (actualImageSize != null && widget.gridOptions.gridShowing)
