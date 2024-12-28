@@ -1,3 +1,4 @@
+import 'package:drawing_app/edit_page.dart';
 import 'package:drawing_app/home.dart';
 import 'package:flutter/material.dart';
 
@@ -17,6 +18,10 @@ class MyApp extends StatelessWidget {
           scaffoldBackgroundColor: Colors.indigo[50]),
       title: 'Drawing App',
       home: const HomePage(),
+      routes: {
+        "/edit": (context) => const EditPage(),
+        "/home": (context) => const HomePage(),
+      },
     );
   }
 }
