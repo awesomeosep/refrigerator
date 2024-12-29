@@ -4,16 +4,17 @@ import 'dart:math';
 
 // import 'package:crop_your_image/crop_your_image.dart';
 // import 'package:croppy/croppy.dart';
-import 'package:drawing_app/default_color_filters.dart';
+import 'package:drawing_app/utils/default_color_filters.dart';
 // import 'package:drawing_app/files.dart';
-import 'package:drawing_app/get_image_dimensions.dart';
-import 'package:drawing_app/edited_image.dart';
+import 'package:drawing_app/utils/get_image_dimensions.dart';
+import 'package:drawing_app/utils/edited_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 // import 'package:image_cropping/image_cropping.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as p;
 
 Future<String> get _localPath async {
   final directory = await getApplicationDocumentsDirectory();
@@ -397,8 +398,12 @@ class _EditPageState extends State<EditPage> {
               child: const Text('Save file'),
               onPressed: () async {
                 String localPath = await _localPath;
-                selectedFile!.saveTo("$localPath/${Random().nextInt(10000000).toString()}.jpg");
-                // Navigator.of(context).pop();
+                selectedFile!.saveTo(
+                    "$localPath/_drawing_app_data/saved_images/${Random().nextInt(10000000).toString()}${p.extension(selectedFile!.path)}");
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                  content: Text("Saved image"),
+                ));
+                Navigator.of(context).pop();
               },
             ),
           ],
@@ -492,8 +497,9 @@ class _EditPageState extends State<EditPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        iconTheme: const IconThemeData(color: Colors.white),
         backgroundColor: Colors.indigo[400],
-        title: const Text("Edit image", style: TextStyle(color: Colors.white)),
+        title: const Text("Edit Image", style: TextStyle(color: Colors.white)),
       ),
       body: Padding(
         padding: const EdgeInsets.all(0),

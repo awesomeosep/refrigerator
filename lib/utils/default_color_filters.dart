@@ -1,6 +1,6 @@
 import 'dart:ui';
 
-import 'package:drawing_app/edit_page.dart';
+import 'package:drawing_app/edit.dart';
 
 List<NamedColorFilter> defaultColorFilters = [
   NamedColorFilter(
