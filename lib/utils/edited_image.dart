@@ -61,19 +61,16 @@ class _EditedImageState extends State<EditedImage> {
   Widget imageFrameBuilder(BuildContext context, Widget child, int? frame, bool wasSynchronouslyLoaded) {
     if (wasSynchronouslyLoaded) {
       // Image loaded synchronously
-      // print('Image loaded synchronously');
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _getImageSize(context);
       });
     } else if (frame != null) {
       // Image loaded asynchronously, and a frame is available
-      // print('Image frame loaded');
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _getImageSize(context);
       });
     } else {
       // Image is still loading
-      // print('Image still loading');
     }
     return child;
   }
@@ -99,25 +96,7 @@ class _EditedImageState extends State<EditedImage> {
                           errorBuilder: (BuildContext context, Object error, StackTrace? stackTrace) {
                             return const Center(child: Text('This image type is not supported'));
                           },
-                          frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-                            if (wasSynchronouslyLoaded) {
-                              // Image loaded synchronously
-                              // print('Image loaded synchronously');
-                              WidgetsBinding.instance.addPostFrameCallback((_) {
-                                _getImageSize(context);
-                              });
-                            } else if (frame != null) {
-                              // Image loaded asynchronously, and a frame is available
-                              // print('Image frame loaded');
-                              WidgetsBinding.instance.addPostFrameCallback((_) {
-                                _getImageSize(context);
-                              });
-                            } else {
-                              // Image is still loading
-                              // print('Image still loading');
-                            }
-                            return child;
-                          },
+                          frameBuilder: imageFrameBuilder,
                         ));
             }),
           ),

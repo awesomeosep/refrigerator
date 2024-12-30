@@ -1,7 +1,10 @@
 import 'dart:io';
 
+import 'package:drawing_app/edit_popups/delete_file.dart';
 import 'package:flutter/material.dart';
-import 'package:drawing_app/utils/file_directories.dart';
+import 'package:drawing_app/utils/files.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:drawing_app/edit.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -20,12 +23,11 @@ class _HomePageState extends State<HomePage> {
 
   firstLoad() async {
     await checkForSavedImagesFolder();
-    String imagesDirectoryPath = await getImagesDirectory;
-    final dir = Directory(imagesDirectoryPath);
-    final List<FileSystemEntity> entities = await dir.list().toList();
+    final List<FileSystemEntity> entities = await getAllSavedImages();
     setState(() {
       files = entities;
     });
+    print(files.length);
   }
 
   @override
@@ -36,19 +38,6 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  Future<void> checkForSavedImagesFolder() async {
-    String imagesDirectoryPath = await getImagesDirectory;
-    bool checkPathExistence = await Directory(imagesDirectoryPath).exists();
-    if (!checkPathExistence) {
-      print("creating new directory");
-      await Directory(imagesDirectoryPath).create(recursive: true);
-      print("should have created new directory");
-    } else {
-      print("directory already exists");
-      return;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -56,24 +45,61 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: Colors.indigo[400],
         title: const Text("Home", style: TextStyle(color: Colors.white)),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          FilledButton.icon(
-              icon: const Icon(Icons.upload),
-              onPressed: () async {
-                await checkForSavedImagesFolder();
-                Navigator.pushNamed(context, "/edit");
-              },
-              label: const Text("Upload Image")),
-          const SizedBox(height: 16),
-          if (files.isNotEmpty)
-            Wrap(
-              spacing: 16,
-              runSpacing: 16,
-              children: files.map((item) => SizedBox(height: 150, child: Image.file(File(item.path)))).toList(),
-            ),
-        ]),
+      body: SizedBox(
+        width: double.infinity,
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              const Text("Upload New Image", style: TextStyle(fontSize: 22)),
+              const SizedBox(height: 16),
+              FilledButton.icon(
+                  icon: const Icon(Icons.upload),
+                  onPressed: () async {
+                    await checkForSavedImagesFolder();
+                    Navigator.pushNamed(context, "/upload").whenComplete(firstLoad);
+                  },
+                  label: const Text("Upload Image")),
+              const SizedBox(height: 16),
+              const Text("Previous Images", style: TextStyle(fontSize: 22)),
+              const SizedBox(height: 16.0),
+              if (files.isNotEmpty)
+                Wrap(
+                    direction: Axis.vertical,
+                    spacing: 8,
+                    children: files
+                        .map((item) => Wrap(
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: [
+                                SizedBox(height: 28, width: 28, child: Image.file(File(item.path))),
+                                Text(XFile(item.path).name),
+                                IconButton(
+                                    onPressed: () {
+                                      Navigator.pushNamed(context, "/edit", arguments: EditPageArguments(item.path));
+                                    },
+                                    icon: const Icon(Icons.edit)),
+                                IconButton(
+                                    onPressed: () {
+                                      showDeleteImagePopup(context, item.path).then((e) {
+                                        firstLoad();
+                                      });
+                                    },
+                                    icon: const Icon(Icons.delete)),
+                              ],
+                            ))
+                        .toList())
+              // Wrap(
+              //   spacing: 32,
+              //   runSpacing: 32,
+              //   children: files.map((item) => SizedBox(height: 150, child: Image.file(File(item.path)))).toList(),
+              // )
+              else
+                const Text("You have not uploaded and edited any images yet"),
+            ]),
+          ),
+        ),
       ),
     );
   }
