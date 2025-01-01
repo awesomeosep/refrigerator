@@ -221,11 +221,13 @@ class _UploadPageState extends State<UploadPage> {
                                 )))
                             .path;
                         // context.read<ImageListChanged>().changed = false;
-                        Navigator.popAndPushNamed(
-                          context,
-                          "/edit",
-                          arguments: EditPageArguments(newFileId, newImagePath, savedDataPath),
-                        );
+                        if (context.mounted) {
+                          Navigator.popAndPushNamed(
+                            context,
+                            "/edit",
+                            arguments: EditPageArguments(newFileId, newImagePath, savedDataPath),
+                          );
+                        }
                       },
                       child: const Text("Use this image"))
                 ])

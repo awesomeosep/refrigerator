@@ -11,7 +11,7 @@ Future<Size> getImageDimensions(File imageFile) async {
 Future<Size> calculateImageDimension(File imageFile) {
   Completer<Size> completer = Completer();
   Image image = Image.file(imageFile);
-  image.image.resolve(ImageConfiguration()).addListener(
+  image.image.resolve(const ImageConfiguration()).addListener(
     ImageStreamListener(
       (ImageInfo image, bool synchronousCall) {
         var myImage = image.image;

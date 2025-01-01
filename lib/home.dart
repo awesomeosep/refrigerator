@@ -26,16 +26,16 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       files = entities;
     });
-    print(files.length);
+    // print(files.length);
     List<ImageData> newFileData = [];
     if (files.isNotEmpty) {
       for (int i = 0; i < files.length; i++) {
-        print(await File(files[i].path).exists());
+        // print(await File(files[i].path).exists());
         ImageData thisFileData = await getSavedImageData(p.basenameWithoutExtension(XFile(files[i].path).name));
         newFileData.add(thisFileData);
       }
     }
-    print(newFileData.length);
+    // print(newFileData.length);
     setState(() {
       fileData = newFileData;
     });
@@ -56,7 +56,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    print("home did change dependencies");
+    // print("home did change dependencies");
     WidgetsBinding.instance.addPostFrameCallback((_) {
       firstLoad();
     });
@@ -87,7 +87,9 @@ class _HomePageState extends State<HomePage> {
                   icon: const Icon(Icons.upload),
                   onPressed: () async {
                     await checkForSavedImagesFolder();
-                    Navigator.pushNamed(context, "/upload").whenComplete(firstLoad);
+                    if (context.mounted) {
+                      Navigator.pushNamed(context, "/upload").whenComplete(firstLoad);
+                    }
                   },
                   label: const Text("Upload Image")),
               const SizedBox(height: 16),
@@ -125,7 +127,6 @@ class _HomePageState extends State<HomePage> {
                                               arguments:
                                                   EditPageArguments(fileData[files.indexOf(item)].id, item.path, ""))
                                           .whenComplete(firstLoad);
-                                      ;
                                     },
                                     icon: const Icon(Icons.edit)),
                                 IconButton(

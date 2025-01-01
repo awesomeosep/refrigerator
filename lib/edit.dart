@@ -4,6 +4,7 @@ import 'dart:math';
 
 // import 'package:crop_your_image/crop_your_image.dart';
 // import 'package:croppy/croppy.dart';
+import 'package:drawing_app/edit_popups/export_image.dart';
 import 'package:drawing_app/edit_popups/grid_lines.dart';
 import 'package:drawing_app/edit_popups/image_filters.dart';
 import 'package:drawing_app/edit_popups/save_image.dart';
@@ -17,6 +18,7 @@ import 'package:flutter/material.dart';
 // import 'package:image_cropping/image_cropping.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as p;
+import 'package:screenshot/screenshot.dart';
 
 class NamedColorFilter {
   final String name;
@@ -45,6 +47,7 @@ class _EditPageState extends State<EditPage> {
   XFile? selectedFile;
   Size? selectedFileSize;
   String selectedFileName = "Untitled";
+  String selectedFileId = "";
 
   dynamic _pickImageError;
 
@@ -68,6 +71,9 @@ class _EditPageState extends State<EditPage> {
   Uint8List? selectedFileData;
 
   bool firstTimeRan = false;
+
+  ScreenshotController screenshotController = ScreenshotController();
+  TransformationController interactiveViewerController = TransformationController();
 
   void setSelectedFileVars(XFile? file) async {
     Size? dimensions;
@@ -96,6 +102,7 @@ class _EditPageState extends State<EditPage> {
       popupCurrentColor = imageData.gridOptions.gridColor;
       selectedFilter = imageData.colorFilter;
       selectedFileName = imageData.name;
+      selectedFileId = imageData.id;
     });
   }
 
@@ -125,25 +132,29 @@ class _EditPageState extends State<EditPage> {
       return retrieveError;
     }
     if (selectedFile != null) {
-      return InteractiveViewer(
-        clipBehavior: Clip.none,
-        boundaryMargin: const EdgeInsets.all(42.0), // Margin around the content
-        minScale: 0.1, // Minimum scale (zoom out)
-        maxScale: 5.0, //
-        child: EditedImage(
-            image: selectedFile!,
-            gridOptions: GridOptions(
-                originalSize: selectedFileSize!,
-                rows: gridRows,
-                columns: gridColumns,
-                gridColor: gridLineColor,
-                gridLineWidth: gridLineWidth,
-                gridShowing: showGrid),
-            filter: selectedFilter == null
-                ? null
-                : defaultFilters.firstWhere((item) {
-                    return item.id == selectedFilter;
-                  })),
+      return Screenshot(
+        controller: screenshotController,
+        child: InteractiveViewer(
+          transformationController: interactiveViewerController,
+          clipBehavior: Clip.none,
+          boundaryMargin: const EdgeInsets.all(42.0), // Margin around the content
+          minScale: 0.1, // Minimum scale (zoom out)
+          maxScale: 5.0, //
+          child: EditedImage(
+              image: selectedFile!,
+              gridOptions: GridOptions(
+                  originalSize: selectedFileSize!,
+                  rows: gridRows,
+                  columns: gridColumns,
+                  gridColor: gridLineColor,
+                  gridLineWidth: gridLineWidth,
+                  gridShowing: showGrid),
+              filter: selectedFilter == null
+                  ? null
+                  : defaultFilters.firstWhere((item) {
+                      return item.id == selectedFilter;
+                    })),
+        ),
       );
     } else if (_pickImageError != null) {
       return Text(
@@ -183,7 +194,7 @@ class _EditPageState extends State<EditPage> {
   firstLoad() async {
     if (ModalRoute.of(context)?.settings.arguments != null) {
       final args = ModalRoute.of(context)!.settings.arguments as EditPageArguments;
-      print("got the file ${args.filePath}");
+      // print("got the file ${args.filePath}");
       ImageData loadedImageData = await getSavedImageData(args.fileId);
       setSelectedFileVars(XFile(args.filePath));
       setImageDataVars(loadedImageData);
@@ -194,7 +205,6 @@ class _EditPageState extends State<EditPage> {
   void didChangeDependencies() async {
     super.didChangeDependencies();
     if (!firstTimeRan) {
-      print("init state ran");
       firstLoad();
       setState(() {
         firstTimeRan = true;
@@ -223,35 +233,57 @@ class _EditPageState extends State<EditPage> {
                 padding: const EdgeInsets.only(bottom: 16.0),
                 child: FloatingActionButton(
                   onPressed: () {
-                    setState(() {
-                      showSavingPopup(context, selectedFileName, (saveACopy, fileName) async {
-                        String newFileId;
-                        String newFilePath;
-                        if (saveACopy) {
-                          newFileId = Random().nextInt(10000000).toString();
-                          newFilePath = await saveImage(selectedFile!, newFileId, p.extension(selectedFile!.path));
-                        } else {
-                          newFileId = p.basenameWithoutExtension(selectedFile!.name);
-                          newFilePath = selectedFile!.path;
-                        }
-                        String savedDataPath = (await saveImageData(
-                                fileName,
-                                newFileId,
-                                ImageData(
-                                  name: fileName,
-                                  id: newFileId,
-                                  colorFilter: selectedFilter,
-                                  gridOptions: GridOptions(
-                                      originalSize: selectedFileSize!,
-                                      rows: gridRows,
-                                      columns: gridColumns,
-                                      gridColor: gridLineColor,
-                                      gridLineWidth: gridLineWidth,
-                                      gridShowing: showGrid),
-                                )))
-                            .path;
-                        // context.read<ImageListChanged>().changed = false;
+                    interactiveViewerController.value = Matrix4.identity();
+                    screenshotController.capture().then((Uint8List? image) {
+                      if (image != null) {
+                        showExportImagePopup(context, image, selectedFileId);
+                      }
+                    }).catchError((onError) {
+                      // print(onError);
+                      return;
+                    });
+                  },
+                  heroTag: 'filters0',
+                  tooltip: 'Apply color filters',
+                  child: const Icon(Icons.download),
+                ),
+              ),
+            if (selectedFile != null)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16.0),
+                child: FloatingActionButton(
+                  onPressed: () {
+                    showSavingPopup(context, selectedFileName, (saveACopy, fileName) async {
+                      String newFileId;
+                      String newFilePath;
+                      if (saveACopy) {
+                        newFileId = Random().nextInt(10000000).toString();
+                        newFilePath = await saveImage(selectedFile!, newFileId, p.extension(selectedFile!.path));
+                      } else {
+                        newFileId = p.basenameWithoutExtension(selectedFile!.name);
+                        newFilePath = selectedFile!.path;
+                      }
+                      String savedDataPath = (await saveImageData(
+                              fileName,
+                              newFileId,
+                              ImageData(
+                                name: fileName,
+                                id: newFileId,
+                                colorFilter: selectedFilter,
+                                gridOptions: GridOptions(
+                                    originalSize: selectedFileSize!,
+                                    rows: gridRows,
+                                    columns: gridColumns,
+                                    gridColor: gridLineColor,
+                                    gridLineWidth: gridLineWidth,
+                                    gridShowing: showGrid),
+                              )))
+                          .path;
+                      // context.read<ImageListChanged>().changed = false;
+                      if (context.mounted) {
                         Navigator.of(context).pop();
+                      }
+                      if (context.mounted) {
                         if (saveACopy) {
                           Navigator.popAndPushNamed(context, "/edit",
                               arguments: EditPageArguments(newFileId, newFilePath, savedDataPath));
@@ -263,7 +295,7 @@ class _EditPageState extends State<EditPage> {
                             content: Text("Saved image"),
                           ));
                         }
-                      });
+                      }
                     });
                   },
                   heroTag: 'save0',
@@ -271,30 +303,14 @@ class _EditPageState extends State<EditPage> {
                   child: const Icon(Icons.save),
                 ),
               ),
-            // if (selectedFile != null)
-            //   Padding(
-            //     padding: const EdgeInsets.only(bottom: 16.0),
-            //     child: FloatingActionButton(
-            //       onPressed: () {
-            //         setState(() {
-            //           // showCroppingPopup();
-            //         });
-            //       },
-            //       heroTag: 'cropping0',
-            //       tooltip: 'Crop image',
-            //       child: const Icon(Icons.crop),
-            //     ),
-            //   ),
             if (selectedFile != null)
               Padding(
                 padding: const EdgeInsets.only(bottom: 16.0),
                 child: FloatingActionButton(
                   onPressed: () {
-                    setState(() {
-                      showImageFiltersPopup(context, selectedFilter, (filter) {
-                        setState(() {
-                          selectedFilter = filter;
-                        });
+                    showImageFiltersPopup(context, selectedFilter, (filter) {
+                      setState(() {
+                        selectedFilter = filter;
                       });
                     });
                   },
@@ -308,25 +324,21 @@ class _EditPageState extends State<EditPage> {
                 padding: const EdgeInsets.only(bottom: 16.0),
                 child: FloatingActionButton(
                   onPressed: () {
-                    setState(() {
-                      showGridLinesPopup(
-                          context,
-                          GridOptions(
-                              originalSize: const Size(0, 0),
-                              rows: gridRows,
-                              columns: gridColumns,
-                              gridColor: gridLineColor,
-                              gridLineWidth: gridLineWidth,
-                              gridShowing: showGrid), (rows, columns, lineWidth, color, gridShowing) {
-                        setState(() {
-                          gridRows = rows;
-                          gridColumns = columns;
-                          gridLineWidth = lineWidth;
-                          gridLineColor = color;
-                          showGrid = gridShowing;
-                        });
-                        print(gridRows);
-                        print(showGrid);
+                    showGridLinesPopup(
+                        context,
+                        GridOptions(
+                            originalSize: const Size(0, 0),
+                            rows: gridRows,
+                            columns: gridColumns,
+                            gridColor: gridLineColor,
+                            gridLineWidth: gridLineWidth,
+                            gridShowing: showGrid), (rows, columns, lineWidth, color, gridShowing) {
+                      setState(() {
+                        gridRows = rows;
+                        gridColumns = columns;
+                        gridLineWidth = lineWidth;
+                        gridLineColor = color;
+                        showGrid = gridShowing;
                       });
                     });
                   },

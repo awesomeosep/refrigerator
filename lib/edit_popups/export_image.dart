@@ -1,15 +1,16 @@
+import 'package:drawing_app/utils/files.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-Future<void> showSavingPopup(BuildContext context, String initialFileName, Function onUpdate) async {
+Future<void> showExportImagePopup(BuildContext context, Uint8List exportedImageData, String fileName) async {
   return showDialog<void>(
     context: context,
     barrierDismissible: false, // user must tap button!
     builder: (BuildContext context) {
-      bool saveACopy = false;
-      TextEditingController fileNameController = TextEditingController(text: initialFileName);
+      TextEditingController fileNameController = TextEditingController(text: fileName);
 
       return AlertDialog(
-        title: const Text('Save File'),
+        title: const Text('Export Image'),
         content: StatefulBuilder(builder: (BuildContext context, StateSetter setState) {
           return SingleChildScrollView(
             child: ListBody(children: <Widget>[
@@ -21,19 +22,10 @@ Future<void> showSavingPopup(BuildContext context, String initialFileName, Funct
                 ),
               ),
               const SizedBox(height: 8),
-              CheckboxListTile(
-                contentPadding: const EdgeInsets.all(0),
-                dense: true,
-                title: const Text("Save a copy?"),
-                value: saveACopy,
-                onChanged: (bool? value) {
-                  setState(() {
-                    if (value != null) {
-                      saveACopy = value;
-                    }
-                  });
-                },
-              )
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 350),
+                child: Image.memory(exportedImageData),
+              ),
             ]),
           );
         }),
@@ -45,9 +37,13 @@ Future<void> showSavingPopup(BuildContext context, String initialFileName, Funct
             },
           ),
           FilledButton(
-            child: const Text('Save file'),
+            child: const Text('Export Image'),
             onPressed: () {
-              onUpdate(saveACopy, fileNameController.text);
+              exportImageFromData(exportedImageData, fileNameController.text);
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                content: Text("Exported to downloads"),
+              ));
+              Navigator.pop(context);
             },
           ),
         ],
