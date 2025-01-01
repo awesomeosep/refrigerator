@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:drawing_app/edit.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:image_picker/image_picker.dart';
 
 class GridOptions {
@@ -21,6 +22,51 @@ class GridOptions {
     this.gridLineWidth = 1.0,
     this.gridShowing = false,
   });
+
+  Map toJson() {
+    return {
+      "originalWidth": originalSize.width.toString(),
+      "originalHeight": originalSize.width.toString(),
+      "rows": rows.toString(),
+      "columns": columns.toString(),
+      "gridColor": gridColor.toHexString(),
+      "lineWidth": gridLineWidth.toString(),
+      "gridShowing": gridShowing.toString(),
+    };
+  }
+
+  static GridOptions fromJson(jsonObject) {
+    return GridOptions(
+        originalSize: Size(double.parse(jsonObject["originalWidth"].toString()),
+            double.parse(jsonObject["originalHeight"].toString())),
+        rows: int.parse(jsonObject["rows"].toString()),
+        columns: int.parse(jsonObject["columns"].toString()),
+        gridColor: Color(int.parse("0x${jsonObject["gridColor"]}")),
+        gridLineWidth: double.parse(jsonObject["lineWidth"]),
+        gridShowing: bool.parse(jsonObject["gridShowing"]));
+  }
+}
+
+class ImageData {
+  String? colorFilter;
+  GridOptions gridOptions;
+  String name;
+  String id;
+
+  ImageData({required this.colorFilter, required this.gridOptions, required this.name, required this.id});
+
+  Map toJson() {
+    Map finalObject = {"gridOptions": gridOptions.toJson(), "colorFilter": colorFilter, "name": name, "id": id};
+    return finalObject;
+  }
+
+  static ImageData fromJson(jsonObject) {
+    return ImageData(
+        colorFilter: jsonObject["colorFilter"],
+        gridOptions: GridOptions.fromJson(jsonObject["gridOptions"]),
+        name: jsonObject["name"],
+        id: jsonObject["id"]);
+  }
 }
 
 class EditedImage extends StatefulWidget {

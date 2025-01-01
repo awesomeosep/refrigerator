@@ -1,16 +1,15 @@
 import 'package:drawing_app/utils/files.dart';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 
-Future<void> showDeleteImagePopup(BuildContext context, String filePath) async {
+Future<void> showDeleteImagePopup(BuildContext context, String fileId, String imageFileExtension) async {
   return showDialog<void>(
     context: context,
     barrierDismissible: false, // user must tap button!
     builder: (BuildContext context) {
       return AlertDialog(
-        title: Text("Are you sure you want to delete this file?"),
+        title: const Text("Are you sure you want to delete this file?"),
         content: StatefulBuilder(builder: (BuildContext context, StateSetter setState) {
-          return Text("File name: ${XFile(filePath).name}");
+          return Text("File name: $fileId");
         }),
         actions: <Widget>[
           TextButton(
@@ -22,7 +21,7 @@ Future<void> showDeleteImagePopup(BuildContext context, String filePath) async {
           FilledButton(
             child: const Text('Delete'),
             onPressed: () {
-              deleteFile(filePath);
+              deleteFile(fileId, imageFileExtension);
               Navigator.of(context).pop();
             },
           ),

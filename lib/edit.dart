@@ -27,9 +27,11 @@ class NamedColorFilter {
 }
 
 class EditPageArguments {
-  final String selectedFilePath;
+  final String fileId;
+  final String filePath;
+  final String dataPath;
 
-  EditPageArguments(this.selectedFilePath);
+  EditPageArguments(this.fileId, this.filePath, this.dataPath);
 }
 
 class EditPage extends StatefulWidget {
@@ -42,6 +44,7 @@ class EditPage extends StatefulWidget {
 class _EditPageState extends State<EditPage> {
   XFile? selectedFile;
   Size? selectedFileSize;
+  String selectedFileName = "Untitled";
 
   dynamic _pickImageError;
 
@@ -58,21 +61,19 @@ class _EditPageState extends State<EditPage> {
   String? selectedFilter;
   bool saveACopy = false;
 
-  // TextEditingController gridRowsController = TextEditingController(text: "8");
-  // TextEditingController gridColumnsController = TextEditingController(text: "12");
-  // TextEditingController gridLineWidthController = TextEditingController(text: "1");
-  TextEditingController fileNameController = TextEditingController(text: "Untitled");
   // TextEditingController fileNameController = TextEditingController(text: "Untitled");
 
   List<NamedColorFilter> defaultFilters = defaultColorFilters;
 
   Uint8List? selectedFileData;
 
+  bool firstTimeRan = false;
+
   void setSelectedFileVars(XFile? file) async {
     Size? dimensions;
     Uint8List? data;
     if (file != null) {
-      dimensions = await getImageDimensions(File(file.path));
+      dimensions = await calculateImageDimension(File(file.path));
       data = await file.readAsBytes();
     } else {
       dimensions = null;
@@ -82,6 +83,19 @@ class _EditPageState extends State<EditPage> {
       selectedFile = file;
       selectedFileSize = dimensions;
       selectedFileData = data;
+    });
+  }
+
+  void setImageDataVars(ImageData imageData) async {
+    setState(() {
+      showGrid = imageData.gridOptions.gridShowing;
+      gridRows = imageData.gridOptions.rows;
+      gridColumns = imageData.gridOptions.columns;
+      gridLineWidth = imageData.gridOptions.gridLineWidth;
+      gridLineColor = imageData.gridOptions.gridColor;
+      popupCurrentColor = imageData.gridOptions.gridColor;
+      selectedFilter = imageData.colorFilter;
+      selectedFileName = imageData.name;
     });
   }
 
@@ -169,18 +183,23 @@ class _EditPageState extends State<EditPage> {
   firstLoad() async {
     if (ModalRoute.of(context)?.settings.arguments != null) {
       final args = ModalRoute.of(context)!.settings.arguments as EditPageArguments;
-      print("got the file ${args.selectedFilePath}");
-      setState(() {
-        setSelectedFileVars(XFile(args.selectedFilePath));
-      });
+      print("got the file ${args.filePath}");
+      ImageData loadedImageData = await getSavedImageData(args.fileId);
+      setSelectedFileVars(XFile(args.filePath));
+      setImageDataVars(loadedImageData);
     }
   }
 
   @override
   void didChangeDependencies() async {
     super.didChangeDependencies();
-    print("init state ran");
-    firstLoad();
+    if (!firstTimeRan) {
+      print("init state ran");
+      firstLoad();
+      setState(() {
+        firstTimeRan = true;
+      });
+    }
   }
 
   @override
@@ -205,17 +224,37 @@ class _EditPageState extends State<EditPage> {
                 child: FloatingActionButton(
                   onPressed: () {
                     setState(() {
-                      showSavingPopup(context, selectedFile!.name.split(".")[0], (saveACopy, fileName) async {
+                      showSavingPopup(context, selectedFileName, (saveACopy, fileName) async {
+                        String newFileId;
                         String newFilePath;
                         if (saveACopy) {
-                          newFilePath = await saveImage(
-                              selectedFile!, Random().nextInt(10000000).toString(), p.extension(selectedFile!.path));
+                          newFileId = Random().nextInt(10000000).toString();
+                          newFilePath = await saveImage(selectedFile!, newFileId, p.extension(selectedFile!.path));
                         } else {
-                          newFilePath = await saveImage(selectedFile!, selectedFile!.name, "");
+                          newFileId = p.basenameWithoutExtension(selectedFile!.name);
+                          newFilePath = selectedFile!.path;
                         }
+                        String savedDataPath = (await saveImageData(
+                                fileName,
+                                newFileId,
+                                ImageData(
+                                  name: fileName,
+                                  id: newFileId,
+                                  colorFilter: selectedFilter,
+                                  gridOptions: GridOptions(
+                                      originalSize: selectedFileSize!,
+                                      rows: gridRows,
+                                      columns: gridColumns,
+                                      gridColor: gridLineColor,
+                                      gridLineWidth: gridLineWidth,
+                                      gridShowing: showGrid),
+                                )))
+                            .path;
+                        // context.read<ImageListChanged>().changed = false;
                         Navigator.of(context).pop();
                         if (saveACopy) {
-                          Navigator.pushReplacementNamed(context, "/edit", arguments: EditPageArguments(newFilePath));
+                          Navigator.popAndPushNamed(context, "/edit",
+                              arguments: EditPageArguments(newFileId, newFilePath, savedDataPath));
                           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
                             content: Text("Saved copy of image"),
                           ));
@@ -232,20 +271,20 @@ class _EditPageState extends State<EditPage> {
                   child: const Icon(Icons.save),
                 ),
               ),
-            if (selectedFile != null)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 16.0),
-                child: FloatingActionButton(
-                  onPressed: () {
-                    setState(() {
-                      // showCroppingPopup();
-                    });
-                  },
-                  heroTag: 'cropping0',
-                  tooltip: 'Crop image',
-                  child: const Icon(Icons.crop),
-                ),
-              ),
+            // if (selectedFile != null)
+            //   Padding(
+            //     padding: const EdgeInsets.only(bottom: 16.0),
+            //     child: FloatingActionButton(
+            //       onPressed: () {
+            //         setState(() {
+            //           // showCroppingPopup();
+            //         });
+            //       },
+            //       heroTag: 'cropping0',
+            //       tooltip: 'Crop image',
+            //       child: const Icon(Icons.crop),
+            //     ),
+            //   ),
             if (selectedFile != null)
               Padding(
                 padding: const EdgeInsets.only(bottom: 16.0),
@@ -261,7 +300,7 @@ class _EditPageState extends State<EditPage> {
                   },
                   heroTag: 'filters0',
                   tooltip: 'Apply color filters',
-                  child: const Icon(Icons.filter),
+                  child: const Icon(Icons.palette),
                 ),
               ),
             if (selectedFile != null)
@@ -287,6 +326,7 @@ class _EditPageState extends State<EditPage> {
                           showGrid = gridShowing;
                         });
                         print(gridRows);
+                        print(showGrid);
                       });
                     });
                   },

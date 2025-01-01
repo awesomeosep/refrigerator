@@ -1,10 +1,24 @@
+import 'dart:convert';
 import 'dart:io';
 
+import 'package:drawing_app/utils/edited_image.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 
 Future<String> get getLocalPath async {
-  final directory = await getApplicationDocumentsDirectory();
+  // List<Directory>? foundDirectories = await getExternalStorageDirectories(type: StorageDirectory.documents);
+  // Directory directory;
+  // if (foundDirectories?.isNotEmpty == true) {
+  // directory = Directory("/storage/emulated/0/Documents");
+  // } else {
+  // directory = await getApplicationDocumentsDirectory();
+  // }
+  Directory directory;
+  if (Platform.isWindows) {
+    directory = await getApplicationDocumentsDirectory();
+  } else {
+    directory = (await getExternalStorageDirectory())!;
+  }
   return directory.path;
 }
 
@@ -13,15 +27,27 @@ Future<String> get getImagesDirectory async {
   return "$localPath/_drawing_app_data/saved_images";
 }
 
+Future<String> get getImageDataDirectory async {
+  String localPath = await getLocalPath;
+  return "$localPath/_drawing_app_data/image_data";
+}
+
 Future<void> checkForSavedImagesFolder() async {
   String imagesDirectoryPath = await getImagesDirectory;
   bool checkPathExistence = await Directory(imagesDirectoryPath).exists();
   if (!checkPathExistence) {
-    print("creating new directory");
+    print("creating new images directory");
     await Directory(imagesDirectoryPath).create(recursive: true);
   } else {
-    print("directory already exists");
-    return;
+    print("images directory already exists");
+  }
+  String dataDirectoryPath = await getImageDataDirectory;
+  bool checkPathExistence2 = await Directory(dataDirectoryPath).exists();
+  if (!checkPathExistence2) {
+    print("creating new data directory");
+    await Directory(dataDirectoryPath).create(recursive: true);
+  } else {
+    print("data directory already exists");
   }
 }
 
@@ -38,6 +64,29 @@ Future<String> saveImage(XFile file, String newName, String fileExtension) async
   return "$imagesDirectoryPath/$newName$fileExtension";
 }
 
-Future<void> deleteFile(String filePath) async {
-  await File(filePath).delete();
+Future<File> saveImageData(String imageName, String fileId, ImageData imageCustomizations) async {
+  String imageDataDirectoryPath = await getImageDataDirectory;
+  Map dataObject = imageCustomizations.toJson();
+  String dataString = json.encode(dataObject);
+  File textFile = await File("$imageDataDirectoryPath/$fileId.txt").writeAsString(dataString);
+  return textFile;
+}
+
+Future<void> deleteFile(String fileId, String imageFileExtension) async {
+  String imageDataDirectoryPath = await getImageDataDirectory;
+  String imagesDirectoryPath = await getImagesDirectory;
+  await File("$imagesDirectoryPath/$fileId$imageFileExtension").delete();
+  await File("$imageDataDirectoryPath/$fileId.txt").delete();
+}
+
+Future<ImageData> getSavedImageData(String fileId) async {
+  String imageDataDirectoryPath = await getImageDataDirectory;
+  String stringData = await File("$imageDataDirectoryPath/$fileId.txt").readAsString();
+  ImageData loadedImageData = ImageData.fromJson(json.decode(stringData));
+  return loadedImageData;
+}
+
+Future<String> dataPathFromId(String fileId) async {
+  String imageDataDirectoryPath = await getImageDataDirectory;
+  return "$imageDataDirectoryPath/$fileId.txt";
 }
