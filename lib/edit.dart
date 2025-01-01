@@ -64,8 +64,6 @@ class _EditPageState extends State<EditPage> {
   String? selectedFilter;
   bool saveACopy = false;
 
-  // TextEditingController fileNameController = TextEditingController(text: "Untitled");
-
   List<NamedColorFilter> defaultFilters = defaultColorFilters;
 
   Uint8List? selectedFileData;
@@ -117,9 +115,9 @@ class _EditPageState extends State<EditPage> {
         child: InteractiveViewer(
           transformationController: interactiveViewerController,
           clipBehavior: Clip.none,
-          boundaryMargin: const EdgeInsets.all(42.0), // Margin around the content
-          minScale: 0.1, // Minimum scale (zoom out)
-          maxScale: 5.0, //
+          boundaryMargin: const EdgeInsets.all(42.0),
+          minScale: 0.1,
+          maxScale: 5.0,
           child: EditedImage(
               image: selectedFile!,
               gridOptions: GridOptions(

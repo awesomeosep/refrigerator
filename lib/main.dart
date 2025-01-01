@@ -3,28 +3,6 @@ import 'package:drawing_app/home.dart';
 import 'package:drawing_app/upload.dart';
 import 'package:flutter/material.dart';
 
-// // Define your data model
-// class ImageListChanged with ChangeNotifier {
-//   bool _changed = true;
-
-//   bool get changed => _changed;
-
-//   set changed(bool newValue) {
-//     changed = newValue;
-//     notifyListeners(); // Notify listeners of changes
-//   }
-
-//   void setfalse() {
-//     _changed = false;
-//     notifyListeners();
-//   }
-
-//   void settrue() {
-//     _changed = true;
-//     notifyListeners();
-//   }
-// }
-
 void main() {
   runApp(const MyApp());
 }

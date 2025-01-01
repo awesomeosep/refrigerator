@@ -41,18 +41,6 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   if (!_dataLoaded) {
-  //     print("home init state");
-  //     WidgetsBinding.instance.addPostFrameCallback((_) {
-  //       firstLoad();
-  //       _dataLoaded = true;
-  //     });
-  //   }
-  // }
-
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -64,12 +52,6 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    // print("hello home page");
-
-    // if (context.read<ImageListChanged>().changed == true) {
-    //   firstLoad();
-    // }
-
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.indigo[400],
