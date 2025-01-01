@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 Future<void> showSavingPopup(BuildContext context, String initialFileName, Function onUpdate) async {
   return showDialog<void>(
     context: context,
-    barrierDismissible: false, // user must tap button!
+    barrierDismissible: true,
     builder: (BuildContext context) {
       bool saveACopy = false;
       TextEditingController fileNameController = TextEditingController(text: initialFileName);
@@ -13,6 +13,7 @@ Future<void> showSavingPopup(BuildContext context, String initialFileName, Funct
         content: StatefulBuilder(builder: (BuildContext context, StateSetter setState) {
           return SingleChildScrollView(
             child: ListBody(children: <Widget>[
+              const Text("Saves image and edits to the app."),
               TextField(
                 controller: fileNameController,
                 decoration: const InputDecoration(

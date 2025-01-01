@@ -6,7 +6,7 @@ Future<void> showGridLinesPopup(
     BuildContext context, GridOptions initialGridOptions, Function onUpdate) async {
   return showDialog<void>(
     context: context,
-    barrierDismissible: false, // user must tap button!
+    barrierDismissible: true,
     builder: (BuildContext context) {
       Color gridColor = initialGridOptions.gridColor;
       bool showGrid = initialGridOptions.gridShowing;
@@ -126,6 +126,12 @@ Future<void> showGridLinesPopup(
         }),
         actions: <Widget>[
           TextButton(
+            child: const Text('Close'),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+          FilledButton(
             child: const Text('Update'),
             onPressed: () {
               int rowsParsed = int.tryParse(gridRowsController.text) ?? 1;

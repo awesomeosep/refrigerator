@@ -81,7 +81,7 @@ class _HomePageState extends State<HomePage> {
           child: Padding(
             padding: const EdgeInsets.all(24),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const Text("Upload New Image", style: TextStyle(fontSize: 22)),
+              const Text("New Image", style: TextStyle(fontSize: 22)),
               const SizedBox(height: 16),
               FilledButton.icon(
                   icon: const Icon(Icons.upload),
@@ -96,7 +96,7 @@ class _HomePageState extends State<HomePage> {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  const Text("Previously Edited Images", style: TextStyle(fontSize: 22)),
+                  const Text("Uploaded Images", style: TextStyle(fontSize: 22)),
                   const SizedBox(width: 8),
                   IconButton(
                       onPressed: () {

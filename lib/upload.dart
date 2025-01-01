@@ -196,7 +196,7 @@ class _UploadPageState extends State<UploadPage> {
                       icon: const Icon(Icons.arrow_back)),
                   const SizedBox(height: 16),
                   Text("Name: ${selectedFile!.name}"),
-                  Text("Size: ${selectedFileSize!.width} x ${selectedFileSize!.height}"),
+                  Text("Dimensions: ${selectedFileSize!.width} x ${selectedFileSize!.height}"),
                   Text("Aspect Ratio: ${selectedFileSize!.aspectRatio.toStringAsFixed(2)}"),
                   const SizedBox(height: 16),
                   FilledButton(

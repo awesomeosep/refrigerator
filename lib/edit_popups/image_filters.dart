@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 Future<void> showImageFiltersPopup(BuildContext context, String? initialFilter, Function onUpdate) async {
   return showDialog<void>(
     context: context,
-    barrierDismissible: false, // user must tap button!
+    barrierDismissible: true,
     builder: (BuildContext context) {
       String? popupSelectedFilter = initialFilter;
 
@@ -14,7 +14,7 @@ Future<void> showImageFiltersPopup(BuildContext context, String? initialFilter, 
             child: ListBody(
                 children: defaultColorFilters
                     .map((item) => CheckboxListTile(
-                          contentPadding: const EdgeInsets.all(0),
+                          contentPadding: const EdgeInsets.fromLTRB(0, 0, 16, 0),
                           dense: true,
                           title: Text(item.name),
                           value: popupSelectedFilter == item.id,
@@ -33,6 +33,12 @@ Future<void> showImageFiltersPopup(BuildContext context, String? initialFilter, 
         }),
         actions: <Widget>[
           TextButton(
+            child: const Text('Close'),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+          FilledButton(
             child: const Text('Update'),
             onPressed: () {
               onUpdate(popupSelectedFilter);

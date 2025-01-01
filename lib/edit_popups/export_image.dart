@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 Future<void> showExportImagePopup(BuildContext context, Uint8List exportedImageData, String fileName) async {
   return showDialog<void>(
     context: context,
-    barrierDismissible: false, // user must tap button!
+    barrierDismissible: true,
     builder: (BuildContext context) {
       TextEditingController fileNameController = TextEditingController(text: fileName);
 
@@ -14,6 +14,7 @@ Future<void> showExportImagePopup(BuildContext context, Uint8List exportedImageD
         content: StatefulBuilder(builder: (BuildContext context, StateSetter setState) {
           return SingleChildScrollView(
             child: ListBody(children: <Widget>[
+              const Text("Exports image with edits to downloads folder."),
               TextField(
                 controller: fileNameController,
                 decoration: const InputDecoration(
@@ -23,7 +24,7 @@ Future<void> showExportImagePopup(BuildContext context, Uint8List exportedImageD
               ),
               const SizedBox(height: 8),
               ConstrainedBox(
-                constraints: const BoxConstraints(maxHeight: 350),
+                constraints: const BoxConstraints(maxWidth: 250, maxHeight: 250),
                 child: Image.memory(exportedImageData),
               ),
             ]),

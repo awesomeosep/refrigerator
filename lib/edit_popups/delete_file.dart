@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 Future<void> showDeleteImagePopup(BuildContext context, String fileId, String imageFileExtension) async {
   return showDialog<void>(
     context: context,
-    barrierDismissible: false, // user must tap button!
+    barrierDismissible: true,
     builder: (BuildContext context) {
       return AlertDialog(
         title: const Text("Are you sure you want to delete this file?"),

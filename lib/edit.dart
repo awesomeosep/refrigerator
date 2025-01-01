@@ -106,26 +106,6 @@ class _EditPageState extends State<EditPage> {
     });
   }
 
-  Future<void> _onImageButtonPressed(
-    ImageSource source, {
-    required BuildContext context,
-  }) async {
-    if (context.mounted) {
-      try {
-        final XFile? pickedFile = await _picker.pickImage(
-          source: source,
-        );
-        setState(() {
-          setSelectedFileVars(pickedFile);
-        });
-      } catch (e) {
-        setState(() {
-          _pickImageError = e;
-        });
-      }
-    }
-  }
-
   Widget _previewImages() {
     final Text? retrieveError = _getRetrieveErrorWidget();
     if (retrieveError != null) {
@@ -231,27 +211,27 @@ class _EditPageState extends State<EditPage> {
             if (selectedFile != null)
               Padding(
                 padding: const EdgeInsets.only(bottom: 16.0),
-                child: FloatingActionButton(
+                child: FloatingActionButton.small(
                   onPressed: () {
                     interactiveViewerController.value = Matrix4.identity();
                     screenshotController.capture().then((Uint8List? image) {
                       if (image != null) {
-                        showExportImagePopup(context, image, selectedFileId);
+                        showExportImagePopup(context, image, selectedFileName);
                       }
                     }).catchError((onError) {
                       // print(onError);
                       return;
                     });
                   },
-                  heroTag: 'filters0',
-                  tooltip: 'Apply color filters',
+                  heroTag: 'export0',
+                  tooltip: 'Export images with edits',
                   child: const Icon(Icons.download),
                 ),
               ),
             if (selectedFile != null)
               Padding(
                 padding: const EdgeInsets.only(bottom: 16.0),
-                child: FloatingActionButton(
+                child: FloatingActionButton.small(
                   onPressed: () {
                     showSavingPopup(context, selectedFileName, (saveACopy, fileName) async {
                       String newFileId;
@@ -306,7 +286,7 @@ class _EditPageState extends State<EditPage> {
             if (selectedFile != null)
               Padding(
                 padding: const EdgeInsets.only(bottom: 16.0),
-                child: FloatingActionButton(
+                child: FloatingActionButton.small(
                   onPressed: () {
                     showImageFiltersPopup(context, selectedFilter, (filter) {
                       setState(() {
@@ -322,7 +302,7 @@ class _EditPageState extends State<EditPage> {
             if (selectedFile != null)
               Padding(
                 padding: const EdgeInsets.only(bottom: 16.0),
-                child: FloatingActionButton(
+                child: FloatingActionButton.small(
                   onPressed: () {
                     showGridLinesPopup(
                         context,
@@ -343,28 +323,8 @@ class _EditPageState extends State<EditPage> {
                     });
                   },
                   heroTag: 'grid0',
-                  tooltip: 'Add Grid Lines',
+                  tooltip: 'Add grid lines',
                   child: const Icon(Icons.grid_3x3),
-                ),
-              ),
-            FloatingActionButton(
-              onPressed: () {
-                _onImageButtonPressed(ImageSource.gallery, context: context);
-              },
-              heroTag: 'image0',
-              tooltip: 'Pick Image from gallery',
-              child: const Icon(Icons.photo),
-            ),
-            if (_picker.supportsImageSource(ImageSource.camera))
-              Padding(
-                padding: const EdgeInsets.only(top: 16.0),
-                child: FloatingActionButton(
-                  onPressed: () {
-                    _onImageButtonPressed(ImageSource.camera, context: context);
-                  },
-                  heroTag: 'image2',
-                  tooltip: 'Take a Photo',
-                  child: const Icon(Icons.camera_alt),
                 ),
               ),
           ],
