@@ -4,6 +4,7 @@ import 'dart:math';
 
 // import 'package:crop_your_image/crop_your_image.dart';
 // import 'package:croppy/croppy.dart';
+import 'package:drawing_app/edit_popups/cropping.dart';
 import 'package:drawing_app/edit_popups/export_image.dart';
 import 'package:drawing_app/edit_popups/grid_lines.dart';
 import 'package:drawing_app/edit_popups/image_filters.dart';
@@ -25,7 +26,8 @@ class NamedColorFilter {
   final String id;
   final ColorFilter filter;
 
-  NamedColorFilter({required this.name, required this.id, required this.filter});
+  NamedColorFilter(
+      {required this.name, required this.id, required this.filter});
 }
 
 class EditPageArguments {
@@ -71,7 +73,8 @@ class _EditPageState extends State<EditPage> {
   bool firstTimeRan = false;
 
   ScreenshotController screenshotController = ScreenshotController();
-  TransformationController interactiveViewerController = TransformationController();
+  TransformationController interactiveViewerController =
+      TransformationController();
 
   void setSelectedFileVars(XFile? file) async {
     Size? dimensions;
@@ -171,7 +174,8 @@ class _EditPageState extends State<EditPage> {
 
   firstLoad() async {
     if (ModalRoute.of(context)?.settings.arguments != null) {
-      final args = ModalRoute.of(context)!.settings.arguments as EditPageArguments;
+      final args =
+          ModalRoute.of(context)!.settings.arguments as EditPageArguments;
       // print("got the file ${args.filePath}");
       ImageData loadedImageData = await getSavedImageData(args.fileId);
       setSelectedFileVars(XFile(args.filePath));
@@ -206,125 +210,142 @@ class _EditPageState extends State<EditPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
-            if (selectedFile != null)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 16.0),
-                child: FloatingActionButton.small(
-                  onPressed: () {
-                    interactiveViewerController.value = Matrix4.identity();
-                    screenshotController.capture().then((Uint8List? image) {
-                      if (image != null) {
-                        showExportImagePopup(context, image, selectedFileName);
-                      }
-                    }).catchError((onError) {
-                      // print(onError);
-                      return;
+            Padding(
+              padding: const EdgeInsets.only(bottom: 16.0),
+              child: FloatingActionButton.small(
+                onPressed: () {
+                  showCropImagePopup(context, selectedFile!, (croppedImage) {
+                    setState(() {
+                      setSelectedFileVars(croppedImage);
                     });
-                  },
-                  heroTag: 'export0',
-                  tooltip: 'Export images with edits',
-                  child: const Icon(Icons.download),
-                ),
+                  });
+                },
+                heroTag: 'crop0',
+                tooltip: 'Crop image',
+                child: const Icon(Icons.crop),
               ),
-            if (selectedFile != null)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 16.0),
-                child: FloatingActionButton.small(
-                  onPressed: () {
-                    showSavingPopup(context, selectedFileName, (saveACopy, fileName) async {
-                      String newFileId;
-                      String newFilePath;
+            ),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 16.0),
+              child: FloatingActionButton.small(
+                onPressed: () {
+                  interactiveViewerController.value = Matrix4.identity();
+                  screenshotController.capture().then((Uint8List? image) {
+                    if (image != null && context.mounted) {
+                      showExportImagePopup(context, image, selectedFileName);
+                    }
+                  }).catchError((onError) {
+                    // print(onError);
+                    return;
+                  });
+                },
+                heroTag: 'export0',
+                tooltip: 'Export images with edits',
+                child: const Icon(Icons.download),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 16.0),
+              child: FloatingActionButton.small(
+                onPressed: () {
+                  showSavingPopup(context, selectedFileName,
+                      (saveACopy, fileName) async {
+                    String newFileId;
+                    String newFilePath;
+                    if (saveACopy) {
+                      newFileId = Random().nextInt(10000000).toString();
+                      newFilePath = await saveImage(selectedFile!, newFileId,
+                          p.extension(selectedFile!.path));
+                    } else {
+                      newFileId =
+                          p.basenameWithoutExtension(selectedFile!.name);
+                      newFilePath = selectedFile!.path;
+                    }
+                    String savedDataPath = (await saveImageData(
+                            fileName,
+                            newFileId,
+                            ImageData(
+                              name: fileName,
+                              id: newFileId,
+                              colorFilter: selectedFilter,
+                              gridOptions: GridOptions(
+                                  originalSize: selectedFileSize!,
+                                  rows: gridRows,
+                                  columns: gridColumns,
+                                  gridColor: gridLineColor,
+                                  gridLineWidth: gridLineWidth,
+                                  gridShowing: showGrid),
+                            )))
+                        .path;
+                    if (context.mounted) {
+                      Navigator.of(context).pop();
+                    }
+                    if (context.mounted) {
                       if (saveACopy) {
-                        newFileId = Random().nextInt(10000000).toString();
-                        newFilePath = await saveImage(selectedFile!, newFileId, p.extension(selectedFile!.path));
+                        Navigator.popAndPushNamed(context, "/edit",
+                            arguments: EditPageArguments(
+                                newFileId, newFilePath, savedDataPath));
+                        ScaffoldMessenger.of(context)
+                            .showSnackBar(const SnackBar(
+                          content: Text("Saved copy of image"),
+                        ));
                       } else {
-                        newFileId = p.basenameWithoutExtension(selectedFile!.name);
-                        newFilePath = selectedFile!.path;
+                        ScaffoldMessenger.of(context)
+                            .showSnackBar(const SnackBar(
+                          content: Text("Saved image"),
+                        ));
                       }
-                      String savedDataPath = (await saveImageData(
-                              fileName,
-                              newFileId,
-                              ImageData(
-                                name: fileName,
-                                id: newFileId,
-                                colorFilter: selectedFilter,
-                                gridOptions: GridOptions(
-                                    originalSize: selectedFileSize!,
-                                    rows: gridRows,
-                                    columns: gridColumns,
-                                    gridColor: gridLineColor,
-                                    gridLineWidth: gridLineWidth,
-                                    gridShowing: showGrid),
-                              )))
-                          .path;
-                      // context.read<ImageListChanged>().changed = false;
-                      if (context.mounted) {
-                        Navigator.of(context).pop();
-                      }
-                      if (context.mounted) {
-                        if (saveACopy) {
-                          Navigator.popAndPushNamed(context, "/edit",
-                              arguments: EditPageArguments(newFileId, newFilePath, savedDataPath));
-                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                            content: Text("Saved copy of image"),
-                          ));
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                            content: Text("Saved image"),
-                          ));
-                        }
-                      }
-                    });
-                  },
-                  heroTag: 'save0',
-                  tooltip: 'Save image & edits',
-                  child: const Icon(Icons.save),
-                ),
+                    }
+                  });
+                },
+                heroTag: 'save0',
+                tooltip: 'Save image & edits',
+                child: const Icon(Icons.save),
               ),
-            if (selectedFile != null)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 16.0),
-                child: FloatingActionButton.small(
-                  onPressed: () {
-                    showImageFiltersPopup(context, selectedFilter, (filter) {
-                      setState(() {
-                        selectedFilter = filter;
-                      });
+            ),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 16.0),
+              child: FloatingActionButton.small(
+                onPressed: () {
+                  showImageFiltersPopup(context, selectedFilter, (filter) {
+                    setState(() {
+                      selectedFilter = filter;
                     });
-                  },
-                  heroTag: 'filters0',
-                  tooltip: 'Apply color filters',
-                  child: const Icon(Icons.palette),
-                ),
+                  });
+                },
+                heroTag: 'filters0',
+                tooltip: 'Apply color filters',
+                child: const Icon(Icons.palette),
               ),
-            if (selectedFile != null)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 16.0),
-                child: FloatingActionButton.small(
-                  onPressed: () {
-                    showGridLinesPopup(
-                        context,
-                        GridOptions(
-                            originalSize: const Size(0, 0),
-                            rows: gridRows,
-                            columns: gridColumns,
-                            gridColor: gridLineColor,
-                            gridLineWidth: gridLineWidth,
-                            gridShowing: showGrid), (rows, columns, lineWidth, color, gridShowing) {
-                      setState(() {
-                        gridRows = rows;
-                        gridColumns = columns;
-                        gridLineWidth = lineWidth;
-                        gridLineColor = color;
-                        showGrid = gridShowing;
-                      });
+            ),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 16.0),
+              child: FloatingActionButton.small(
+                onPressed: () {
+                  showGridLinesPopup(
+                      context,
+                      GridOptions(
+                          originalSize: const Size(0, 0),
+                          rows: gridRows,
+                          columns: gridColumns,
+                          gridColor: gridLineColor,
+                          gridLineWidth: gridLineWidth,
+                          gridShowing: showGrid),
+                      (rows, columns, lineWidth, color, gridShowing) {
+                    setState(() {
+                      gridRows = rows;
+                      gridColumns = columns;
+                      gridLineWidth = lineWidth;
+                      gridLineColor = color;
+                      showGrid = gridShowing;
                     });
-                  },
-                  heroTag: 'grid0',
-                  tooltip: 'Add grid lines',
-                  child: const Icon(Icons.grid_3x3),
-                ),
+                  });
+                },
+                heroTag: 'grid0',
+                tooltip: 'Add grid lines',
+                child: const Icon(Icons.grid_3x3),
               ),
+            ),
           ],
         ),
       ),
