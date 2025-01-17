@@ -26,8 +26,7 @@ class NamedColorFilter {
   final String id;
   final ColorFilter filter;
 
-  NamedColorFilter(
-      {required this.name, required this.id, required this.filter});
+  NamedColorFilter({required this.name, required this.id, required this.filter});
 }
 
 class EditPageArguments {
@@ -50,6 +49,7 @@ class _EditPageState extends State<EditPage> {
   Size? selectedFileSize;
   String selectedFileName = "Untitled";
   String selectedFileId = "";
+  XFile? croppedImage;
 
   dynamic _pickImageError;
 
@@ -73,10 +73,9 @@ class _EditPageState extends State<EditPage> {
   bool firstTimeRan = false;
 
   ScreenshotController screenshotController = ScreenshotController();
-  TransformationController interactiveViewerController =
-      TransformationController();
+  TransformationController interactiveViewerController = TransformationController();
 
-  void setSelectedFileVars(XFile? file) async {
+  void setSelectedFileVars(XFile? file, bool resetCropped) async {
     Size? dimensions;
     Uint8List? data;
     if (file != null) {
@@ -157,7 +156,7 @@ class _EditPageState extends State<EditPage> {
     }
     if (response.file != null) {
       setState(() {
-        setSelectedFileVars(response.files?[0]);
+        setSelectedFileVars(response.files?[0], true);
       });
     } else {
       _retrieveDataError = response.exception!.code;
@@ -174,11 +173,10 @@ class _EditPageState extends State<EditPage> {
 
   firstLoad() async {
     if (ModalRoute.of(context)?.settings.arguments != null) {
-      final args =
-          ModalRoute.of(context)!.settings.arguments as EditPageArguments;
+      final args = ModalRoute.of(context)!.settings.arguments as EditPageArguments;
       // print("got the file ${args.filePath}");
       ImageData loadedImageData = await getSavedImageData(args.fileId);
-      setSelectedFileVars(XFile(args.filePath));
+      setSelectedFileVars(XFile(args.filePath), true);
       setImageDataVars(loadedImageData);
     }
   }
@@ -213,12 +211,16 @@ class _EditPageState extends State<EditPage> {
             Padding(
               padding: const EdgeInsets.only(bottom: 16.0),
               child: FloatingActionButton.small(
-                onPressed: () {
-                  showCropImagePopup(context, selectedFile!, (croppedImage) {
-                    setState(() {
-                      setSelectedFileVars(croppedImage);
+                onPressed: () async {
+                  Uint8List imageData = (await getImageData())!;
+                  if (context.mounted) {
+                    showCropImagePopup(context, imageData, (Uint8List croppedImageData) async {
+                      String imagePath = await getSavedImagePathFromId(selectedFileId);
+                      XFile imageFile = XFile.fromData(croppedImageData, name: "$selectedFileId.png", path: imagePath);
+                      print("new file");
+                      setSelectedFileVars(imageFile, false);
                     });
-                  });
+                  }
                 },
                 heroTag: 'crop0',
                 tooltip: 'Crop image',
@@ -248,17 +250,14 @@ class _EditPageState extends State<EditPage> {
               padding: const EdgeInsets.only(bottom: 16.0),
               child: FloatingActionButton.small(
                 onPressed: () {
-                  showSavingPopup(context, selectedFileName,
-                      (saveACopy, fileName) async {
+                  showSavingPopup(context, selectedFileName, (saveACopy, fileName) async {
                     String newFileId;
                     String newFilePath;
                     if (saveACopy) {
                       newFileId = Random().nextInt(10000000).toString();
-                      newFilePath = await saveImage(selectedFile!, newFileId,
-                          p.extension(selectedFile!.path));
+                      newFilePath = await saveImage(selectedFile!, newFileId, p.extension(selectedFile!.path));
                     } else {
-                      newFileId =
-                          p.basenameWithoutExtension(selectedFile!.name);
+                      newFileId = p.basenameWithoutExtension(selectedFile!.name);
                       newFilePath = selectedFile!.path;
                     }
                     String savedDataPath = (await saveImageData(
@@ -283,15 +282,12 @@ class _EditPageState extends State<EditPage> {
                     if (context.mounted) {
                       if (saveACopy) {
                         Navigator.popAndPushNamed(context, "/edit",
-                            arguments: EditPageArguments(
-                                newFileId, newFilePath, savedDataPath));
-                        ScaffoldMessenger.of(context)
-                            .showSnackBar(const SnackBar(
+                            arguments: EditPageArguments(newFileId, newFilePath, savedDataPath));
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
                           content: Text("Saved copy of image"),
                         ));
                       } else {
-                        ScaffoldMessenger.of(context)
-                            .showSnackBar(const SnackBar(
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
                           content: Text("Saved image"),
                         ));
                       }
@@ -330,8 +326,7 @@ class _EditPageState extends State<EditPage> {
                           columns: gridColumns,
                           gridColor: gridLineColor,
                           gridLineWidth: gridLineWidth,
-                          gridShowing: showGrid),
-                      (rows, columns, lineWidth, color, gridShowing) {
+                          gridShowing: showGrid), (rows, columns, lineWidth, color, gridShowing) {
                     setState(() {
                       gridRows = rows;
                       gridColumns = columns;

@@ -94,6 +94,11 @@ Future<void> deleteFile(String fileId, String imageFileExtension) async {
   await File("$imageDataDirectoryPath/$fileId.txt").delete();
 }
 
+Future<String> getSavedImagePathFromId(String fileId) async {
+  String imageDataDirectoryPath = await getImageDataDirectory;
+  return "$imageDataDirectoryPath/$fileId.txt";
+}
+
 Future<ImageData> getSavedImageData(String fileId) async {
   String imageDataDirectoryPath = await getImageDataDirectory;
   String stringData = await File("$imageDataDirectoryPath/$fileId.txt").readAsString();
