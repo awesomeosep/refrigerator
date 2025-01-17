@@ -3,7 +3,6 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:crop_image/crop_image.dart';
-// import 'package:crop_your_image/crop_your_image.dart';
 
 Future<void> showCropImagePopup(BuildContext context, Uint8List imageData, Function onUpdate) async {
   return showDialog<void>(
@@ -21,7 +20,6 @@ Future<void> showCropImagePopup(BuildContext context, Uint8List imageData, Funct
             width: double.maxFinite,
             height: double.maxFinite,
             child: Column(
-              // crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
                     child: CropImage(
@@ -175,7 +173,7 @@ Future<void> showCropImagePopup(BuildContext context, Uint8List imageData, Funct
             },
           ),
           FilledButton(
-            child: const Text('Update'),
+            child: const Text('Save a copy'),
             onPressed: () async {
               ui.Image croppedImage = await cropController.croppedBitmap();
               ByteData? data = await croppedImage.toByteData(format: ui.ImageByteFormat.png);

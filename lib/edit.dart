@@ -2,8 +2,6 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 
-// import 'package:crop_your_image/crop_your_image.dart';
-// import 'package:croppy/croppy.dart';
 import 'package:drawing_app/edit_popups/cropping.dart';
 import 'package:drawing_app/edit_popups/export_image.dart';
 import 'package:drawing_app/edit_popups/grid_lines.dart';
@@ -11,12 +9,10 @@ import 'package:drawing_app/edit_popups/image_filters.dart';
 import 'package:drawing_app/edit_popups/save_image.dart';
 import 'package:drawing_app/utils/default_color_filters.dart';
 import 'package:drawing_app/utils/files.dart';
-// import 'package:drawing_app/files.dart';
 import 'package:drawing_app/utils/get_image_dimensions.dart';
 import 'package:drawing_app/utils/edited_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-// import 'package:image_cropping/image_cropping.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as p;
 import 'package:screenshot/screenshot.dart';
@@ -198,7 +194,7 @@ class _EditPageState extends State<EditPage> {
       appBar: AppBar(
         iconTheme: const IconThemeData(color: Colors.white),
         backgroundColor: Colors.indigo[400],
-        title: const Text("Edit Image", style: TextStyle(color: Colors.white)),
+        title: Text(selectedFileName, style: TextStyle(color: Colors.white)),
       ),
       body: Padding(
         padding: const EdgeInsets.all(0),
@@ -215,10 +211,31 @@ class _EditPageState extends State<EditPage> {
                   Uint8List imageData = (await getImageData())!;
                   if (context.mounted) {
                     showCropImagePopup(context, imageData, (Uint8List croppedImageData) async {
-                      String imagePath = await getSavedImagePathFromId(selectedFileId);
-                      XFile imageFile = XFile.fromData(croppedImageData, name: "$selectedFileId.png", path: imagePath);
-                      print("new file");
-                      setSelectedFileVars(imageFile, false);
+                      String newFileId = Random().nextInt(10000000).toString();
+                      String newImagePath = await saveImageFromData(croppedImageData, newFileId, ".png");
+                      String savedDataPath = (await saveImageData(
+                              selectedFileName,
+                              newFileId,
+                              ImageData(
+                                  name: selectedFileName,
+                                  id: newFileId,
+                                  colorFilter: selectedFilter,
+                                  gridOptions: GridOptions(
+                                      originalSize: await calculateImageDimensionFromData(croppedImageData),
+                                      rows: gridRows,
+                                      columns: gridColumns,
+                                      gridColor: gridLineColor,
+                                      gridLineWidth: gridLineWidth,
+                                      gridShowing: showGrid))))
+                          .path;
+                      // String imagePath = await getSavedImagePathFromId(selectedFileId);
+                      if (context.mounted) {
+                        Navigator.popAndPushNamed(
+                          context,
+                          "/edit",
+                          arguments: EditPageArguments(newFileId, newImagePath, savedDataPath),
+                        );
+                      }
                     });
                   }
                 },
@@ -290,6 +307,9 @@ class _EditPageState extends State<EditPage> {
                         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
                           content: Text("Saved image"),
                         ));
+                        setState(() {
+                          selectedFileName = fileName;
+                        });
                       }
                     }
                   });

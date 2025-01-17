@@ -75,8 +75,17 @@ Future<List<FileSystemEntity>> getAllSavedImages() async {
 
 Future<String> saveImage(XFile file, String newName, String fileExtension) async {
   String imagesDirectoryPath = await getImagesDirectory;
-  file.saveTo("$imagesDirectoryPath/$newName$fileExtension");
-  return "$imagesDirectoryPath/$newName$fileExtension";
+  String imagePath = "$imagesDirectoryPath/$newName$fileExtension";
+  file.saveTo(imagePath);
+  return imagePath;
+}
+
+Future<String> saveImageFromData(Uint8List imageData, String newName, String fileExtension) async {
+  String imagesDirectoryPath = await getImagesDirectory;
+  String imagePath = "$imagesDirectoryPath/$newName$fileExtension";
+  File(imagePath).writeAsBytes(imageData);
+  return imagePath;
+  // return "$imagesDirectoryPath/$newName$fileExtension";
 }
 
 Future<File> saveImageData(String imageName, String fileId, ImageData imageCustomizations) async {
