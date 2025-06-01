@@ -18,7 +18,6 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   List<FileSystemEntity> files = [];
   List<ImageData> fileData = [];
-  // bool _dataLoaded = false;
 
   firstLoad() async {
     await checkForSavedImagesFolder();
@@ -26,16 +25,13 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       files = entities;
     });
-    // print(files.length);
     List<ImageData> newFileData = [];
     if (files.isNotEmpty) {
       for (int i = 0; i < files.length; i++) {
-        // print(await File(files[i].path).exists());
         ImageData thisFileData = await getSavedImageData(p.basenameWithoutExtension(XFile(files[i].path).name));
         newFileData.add(thisFileData);
       }
     }
-    // print(newFileData.length);
     setState(() {
       fileData = newFileData;
     });

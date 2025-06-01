@@ -4,14 +4,14 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:crop_image/crop_image.dart';
 
-Future<void> showCropImagePopup(BuildContext context, Uint8List imageData, Function onUpdate) async {
+Future<void> showCropImagePopup(BuildContext context, Rect? initialCropRect, Uint8List imageData, Function onUpdate) async {
   return showDialog<void>(
     context: context,
     barrierDismissible: true,
     builder: (BuildContext context) {
       final cropController = CropController(
         aspectRatio: null,
-        defaultCrop: const Rect.fromLTRB(0.1, 0.1, 0.9, 0.9),
+        defaultCrop: initialCropRect ?? const Rect.fromLTRB(0.05, 0.05, 0.95, 0.95),
       );
 
       return AlertDialog(
@@ -173,13 +173,13 @@ Future<void> showCropImagePopup(BuildContext context, Uint8List imageData, Funct
             },
           ),
           FilledButton(
-            child: const Text('Save a copy'),
+            child: const Text('Save'),
             onPressed: () async {
               ui.Image croppedImage = await cropController.croppedBitmap();
               ByteData? data = await croppedImage.toByteData(format: ui.ImageByteFormat.png);
               Uint8List bytes = data!.buffer.asUint8List();
-              onUpdate(bytes);
-              Navigator.of(context).pop();
+              onUpdate(bytes, cropController.crop);
+              if (context.mounted) Navigator.of(context).pop();
             },
           ),
         ],

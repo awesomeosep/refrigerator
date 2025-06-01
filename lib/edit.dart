@@ -61,6 +61,7 @@ class _EditPageState extends State<EditPage> {
   Color popupCurrentColor = Colors.red;
   String? selectedFilter;
   bool saveACopy = false;
+  Rect? currentCropRect;
 
   List<NamedColorFilter> defaultFilters = defaultColorFilters;
 
@@ -99,6 +100,7 @@ class _EditPageState extends State<EditPage> {
       selectedFilter = imageData.colorFilter;
       selectedFileName = imageData.name;
       selectedFileId = imageData.id;
+      currentCropRect = imageData.cropRect;
     });
   }
 
@@ -117,6 +119,7 @@ class _EditPageState extends State<EditPage> {
           minScale: 0.1,
           maxScale: 5.0,
           child: EditedImage(
+              cropRect: currentCropRect,
               image: selectedFile!,
               gridOptions: GridOptions(
                   originalSize: selectedFileSize!,
@@ -194,7 +197,7 @@ class _EditPageState extends State<EditPage> {
       appBar: AppBar(
         iconTheme: const IconThemeData(color: Colors.white),
         backgroundColor: Colors.indigo[400],
-        title: Text(selectedFileName, style: TextStyle(color: Colors.white)),
+        title: Text(selectedFileName, style: const TextStyle(color: Colors.white)),
       ),
       body: Padding(
         padding: const EdgeInsets.all(0),
@@ -204,46 +207,6 @@ class _EditPageState extends State<EditPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
-            Padding(
-              padding: const EdgeInsets.only(bottom: 16.0),
-              child: FloatingActionButton.small(
-                onPressed: () async {
-                  Uint8List imageData = (await getImageData())!;
-                  if (context.mounted) {
-                    showCropImagePopup(context, imageData, (Uint8List croppedImageData) async {
-                      String newFileId = Random().nextInt(10000000).toString();
-                      String newImagePath = await saveImageFromData(croppedImageData, newFileId, ".png");
-                      String savedDataPath = (await saveImageData(
-                              selectedFileName,
-                              newFileId,
-                              ImageData(
-                                  name: selectedFileName,
-                                  id: newFileId,
-                                  colorFilter: selectedFilter,
-                                  gridOptions: GridOptions(
-                                      originalSize: await calculateImageDimensionFromData(croppedImageData),
-                                      rows: gridRows,
-                                      columns: gridColumns,
-                                      gridColor: gridLineColor,
-                                      gridLineWidth: gridLineWidth,
-                                      gridShowing: showGrid))))
-                          .path;
-                      // String imagePath = await getSavedImagePathFromId(selectedFileId);
-                      if (context.mounted) {
-                        Navigator.popAndPushNamed(
-                          context,
-                          "/edit",
-                          arguments: EditPageArguments(newFileId, newImagePath, savedDataPath),
-                        );
-                      }
-                    });
-                  }
-                },
-                heroTag: 'crop0',
-                tooltip: 'Crop image',
-                child: const Icon(Icons.crop),
-              ),
-            ),
             Padding(
               padding: const EdgeInsets.only(bottom: 16.0),
               child: FloatingActionButton.small(
@@ -281,6 +244,7 @@ class _EditPageState extends State<EditPage> {
                             fileName,
                             newFileId,
                             ImageData(
+                              cropRect: currentCropRect,
                               name: fileName,
                               id: newFileId,
                               colorFilter: selectedFilter,
@@ -317,6 +281,41 @@ class _EditPageState extends State<EditPage> {
                 heroTag: 'save0',
                 tooltip: 'Save image & edits',
                 child: const Icon(Icons.save),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 16.0),
+              child: FloatingActionButton.small(
+                onPressed: () async {
+                  Uint8List imageData = (await getImageData())!;
+                  if (context.mounted) {
+                    showCropImagePopup(context, currentCropRect, imageData,
+                        (Uint8List croppedImageData, Rect newCropRect) async {
+                      setState(() {
+                        currentCropRect = newCropRect;
+                      });
+                      String savedDataPath = (await saveImageData(
+                              selectedFileName,
+                              selectedFileId,
+                              ImageData(
+                                  cropRect: newCropRect,
+                                  name: selectedFileName,
+                                  id: selectedFileId,
+                                  colorFilter: selectedFilter,
+                                  gridOptions: GridOptions(
+                                      originalSize: await calculateImageDimensionFromData(croppedImageData),
+                                      rows: gridRows,
+                                      columns: gridColumns,
+                                      gridColor: gridLineColor,
+                                      gridLineWidth: gridLineWidth,
+                                      gridShowing: showGrid))))
+                          .path;
+                    });
+                  }
+                },
+                heroTag: 'crop0',
+                tooltip: 'Crop image',
+                child: const Icon(Icons.crop),
               ),
             ),
             Padding(
