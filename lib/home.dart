@@ -121,6 +121,42 @@ class _HomePageState extends State<HomePage> {
                         .toList())
               else
                 const Text("You have not uploaded and edited any images yet"),
+              if (files.isNotEmpty && fileData.length == files.length)
+                SizedBox(
+                  width: 120,
+                  child: Card.outlined(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        SizedBox(height: 96, width: 96, child: Image.file(File(files[0].path))),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: <Widget>[
+                            IconButton(
+                                iconSize: 20,
+                                onPressed: () {
+                                  Navigator.pushNamed(context, "/edit",
+                                          arguments: EditPageArguments(
+                                              fileData[files.indexOf(files[0])].id, files[0].path, ""))
+                                      .whenComplete(firstLoad);
+                                },
+                                icon: const Icon(Icons.edit)),
+                            IconButton(
+                                iconSize: 20,
+                                onPressed: () {
+                                  showDeleteImagePopup(
+                                          context, fileData[files.indexOf(files[0])].id, p.extension(files[0].path))
+                                      .then((e) {
+                                    firstLoad();
+                                  });
+                                },
+                                icon: const Icon(Icons.delete)),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
             ]),
           ),
         ),
