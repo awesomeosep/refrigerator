@@ -141,7 +141,6 @@ class _EditedImageState extends State<EditedImage> {
     } else {
       setState(() {
         actualImageSize = renderBox.size;
-        // _imageLoaded = true;
       });
     }
   }
@@ -174,31 +173,30 @@ class _EditedImageState extends State<EditedImage> {
             child: LayoutBuilder(builder: (BuildContext context, BoxConstraints constraints) {
               return Container(
                 child: ClipRect(
-                  clipper: actualImageSize == null
-                      ? null
-                      : (widget.cropRect == null
-                          ? MyRectClipper(
-                              left: 0, top: 0, right: actualImageSize!.width * 1, bottom: actualImageSize!.height * 1)
-                          : MyRectClipper(
-                              left: actualImageSize!.width * widget.cropRect!.left,
-                              top: actualImageSize!.height * widget.cropRect!.top,
-                              right: actualImageSize!.width * widget.cropRect!.right,
-                              bottom: actualImageSize!.height * widget.cropRect!.bottom)),
-                  child: ColorFiltered(
-                      colorFilter: (widget.filter == null)
-                          ? const ColorFilter.matrix([1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0])
-                          : widget.filter!.filter,
-                      child: kIsWeb
-                          ? Image.network(fit: BoxFit.contain, widget.image.path, frameBuilder: imageFrameBuilder)
-                          : Image.file(
-                              File(widget.image.path),
-                              fit: BoxFit.contain,
-                              errorBuilder: (BuildContext context, Object error, StackTrace? stackTrace) {
-                                return const Center(child: Text('This image type is not supported'));
-                              },
-                              frameBuilder: imageFrameBuilder,
-                            )),
-                ),
+                    clipper: actualImageSize == null
+                        ? MyRectClipper(left: 0, top: 0, right: 0, bottom: 0)
+                        : (widget.cropRect == null
+                            ? MyRectClipper(
+                                left: 0, top: 0, right: actualImageSize!.width * 1, bottom: actualImageSize!.height * 1)
+                            : MyRectClipper(
+                                left: actualImageSize!.width * widget.cropRect!.left,
+                                top: actualImageSize!.height * widget.cropRect!.top,
+                                right: actualImageSize!.width * widget.cropRect!.right,
+                                bottom: actualImageSize!.height * widget.cropRect!.bottom)),
+                    child: ColorFiltered(
+                        colorFilter: (widget.filter == null)
+                            ? const ColorFilter.matrix([1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0])
+                            : widget.filter!.filter,
+                        child: kIsWeb
+                            ? Image.network(fit: BoxFit.contain, widget.image.path, frameBuilder: imageFrameBuilder)
+                            : Image.file(
+                                File(widget.image.path),
+                                fit: BoxFit.contain,
+                                errorBuilder: (BuildContext context, Object error, StackTrace? stackTrace) {
+                                  return const Center(child: Text('This image type is not supported'));
+                                },
+                                frameBuilder: imageFrameBuilder,
+                              ))),
               );
             }),
           ),

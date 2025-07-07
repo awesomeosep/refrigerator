@@ -11,7 +11,7 @@ Future<void> showCropImagePopup(BuildContext context, Rect? initialCropRect, Uin
     builder: (BuildContext context) {
       final cropController = CropController(
         aspectRatio: null,
-        defaultCrop: initialCropRect ?? const Rect.fromLTRB(0.05, 0.05, 0.95, 0.95),
+        defaultCrop: initialCropRect ?? const Rect.fromLTRB(0, 0, 1, 1),
       );
 
       return AlertDialog(

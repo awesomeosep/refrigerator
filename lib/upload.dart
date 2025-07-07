@@ -226,7 +226,7 @@ class _UploadPageState extends State<UploadPage> {
                                     "Untitled",
                                     newFileId,
                                     ImageData(
-                                      cropRect: const Rect.fromLTRB(0.05, 0.95, 0.95, 0.05),
+                                      cropRect: const Rect.fromLTRB(0, 0, 1, 1),
                                       name: "Untitled",
                                       id: newFileId,
                                       colorFilter: null,
