@@ -41,7 +41,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // print("home did change dependencies");
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       firstLoad();
     });
@@ -96,7 +96,6 @@ class _HomePageState extends State<HomePage> {
                         return Card(
                             clipBehavior: Clip.antiAlias,
                             child: Column(
-                              // mainAxisSize: MainAxisSize.min,
                               children: [
                                 SizedBox(width: double.maxFinite, child: Image.file(File(files[index].path))),
                                 const SizedBox(height: 8),
@@ -132,76 +131,6 @@ class _HomePageState extends State<HomePage> {
                   )
                 else
                   const Text("You have not uploaded and edited any images yet"),
-                // if (files.isNotEmpty && fileData.length == files.length)
-                //   Wrap(
-                //       direction: Axis.vertical,
-                //       spacing: 8,
-                //       children: files
-                //           .map((item) => Wrap(
-                //                 crossAxisAlignment: WrapCrossAlignment.center,
-                //                 spacing: 8,
-                //                 runSpacing: 8,
-                //                 children: [
-                //                   SizedBox(height: 28, width: 28, child: Image.file(File(item.path))),
-                //                   Text(fileData[files.indexOf(item)].name),
-                //                   IconButton(
-                //                       onPressed: () {
-                //                         Navigator.pushNamed(context, "/edit",
-                //                                 arguments:
-                //                                     EditPageArguments(fileData[files.indexOf(item)].id, item.path, ""))
-                //                             .whenComplete(firstLoad);
-                //                       },
-                //                       icon: const Icon(Icons.edit)),
-                //                   IconButton(
-                //                       onPressed: () {
-                //                         showDeleteImagePopup(
-                //                                 context, fileData[files.indexOf(item)].id, p.extension(item.path))
-                //                             .then((e) {
-                //                           firstLoad();
-                //                         });
-                //                       },
-                //                       icon: const Icon(Icons.delete)),
-                //                 ],
-                //               ))
-                //           .toList())
-                // else
-                //   const Text("You have not uploaded and edited any images yet"),
-                // if (files.isNotEmpty && fileData.length == files.length)
-                //   SizedBox(
-                //     width: 120,
-                //     child: Card.outlined(
-                //       child: Column(
-                //         mainAxisSize: MainAxisSize.min,
-                //         children: <Widget>[
-                //           SizedBox(height: 96, width: 96, child: Image.file(File(files[0].path))),
-                //           Row(
-                //             mainAxisAlignment: MainAxisAlignment.end,
-                //             children: <Widget>[
-                //               IconButton(
-                //                   iconSize: 20,
-                //                   onPressed: () {
-                //                     Navigator.pushNamed(context, "/edit",
-                //                             arguments: EditPageArguments(
-                //                                 fileData[files.indexOf(files[0])].id, files[0].path, ""))
-                //                         .whenComplete(firstLoad);
-                //                   },
-                //                   icon: const Icon(Icons.edit)),
-                //               IconButton(
-                //                   iconSize: 20,
-                //                   onPressed: () {
-                //                     showDeleteImagePopup(
-                //                             context, fileData[files.indexOf(files[0])].id, p.extension(files[0].path))
-                //                         .then((e) {
-                //                       firstLoad();
-                //                     });
-                //                   },
-                //                   icon: const Icon(Icons.delete)),
-                //             ],
-                //           ),
-                //         ],
-                //       ),
-                //     ),
-                //   ),
               ]),
             ),
           ),
