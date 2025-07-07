@@ -222,7 +222,7 @@ class _EditPageState extends State<EditPage> {
               tooltip: 'Export image with edits',
               child: const Icon(Icons.download),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 8),
             FloatingActionButton.small(
               onPressed: () {
                 showSavingPopup(context, selectedFileName, (saveACopy, fileName) async {
@@ -277,7 +277,7 @@ class _EditPageState extends State<EditPage> {
               tooltip: 'Save image & edits',
               child: const Icon(Icons.save),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 8),
             FloatingActionButton.small(
               onPressed: () async {
                 Uint8List imageData = (await getImageData())!;
@@ -309,7 +309,7 @@ class _EditPageState extends State<EditPage> {
               tooltip: 'Crop image',
               child: const Icon(Icons.crop),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 8),
             FloatingActionButton.small(
               onPressed: () {
                 showImageFiltersPopup(context, selectedFilter, (filter) {
@@ -321,7 +321,7 @@ class _EditPageState extends State<EditPage> {
               tooltip: 'Apply color filters',
               child: const Icon(Icons.palette),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 8),
             FloatingActionButton.small(
               onPressed: () {
                 showGridLinesPopup(
