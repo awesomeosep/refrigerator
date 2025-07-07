@@ -199,9 +199,11 @@ class _EditPageState extends State<EditPage> {
         backgroundColor: Colors.indigo[400],
         title: Text(selectedFileName, style: const TextStyle(color: Colors.white)),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(0),
-        child: Center(child: _previewImages()),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(0),
+          child: Center(child: _previewImages()),
+        ),
       ),
       floatingActionButton: SingleChildScrollView(
         child: Column(
