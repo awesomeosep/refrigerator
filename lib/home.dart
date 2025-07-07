@@ -70,9 +70,10 @@ class _HomePageState extends State<HomePage> {
               padding: const EdgeInsets.all(16),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    const Text("Uploaded Images", style: TextStyle(fontSize: 22)),
+                    const Text("Your Images", style: TextStyle(fontSize: 22)),
                     const SizedBox(width: 8),
                     IconButton(
                         onPressed: () {
@@ -100,6 +101,7 @@ class _HomePageState extends State<HomePage> {
                                 SizedBox(width: double.maxFinite, child: Image.file(File(files[index].path))),
                                 const SizedBox(height: 8),
                                 Text(fileData[files.indexOf(files[index])].name),
+                                const SizedBox(height: 4),
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
@@ -114,7 +116,7 @@ class _HomePageState extends State<HomePage> {
                                     const SizedBox(width: 4),
                                     IconButton(
                                         onPressed: () {
-                                          showDeleteImagePopup(context, fileData[files.indexOf(files[index])].id,
+                                          showDeleteImagePopup(context, fileData[files.indexOf(files[index])].id, fileData[files.indexOf(files[index])].name,
                                                   p.extension(files[index].path))
                                               .then((e) {
                                             firstLoad();
