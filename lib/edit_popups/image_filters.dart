@@ -11,24 +11,28 @@ Future<void> showImageFiltersPopup(BuildContext context, String? initialFilter, 
       return AlertDialog(
         content: StatefulBuilder(builder: (BuildContext context, StateSetter setState) {
           return SingleChildScrollView(
-            child: ListBody(
-                children: defaultColorFilters
-                    .map((item) => CheckboxListTile(
-                          contentPadding: const EdgeInsets.fromLTRB(0, 0, 16, 0),
-                          dense: true,
-                          title: Text(item.name),
-                          value: popupSelectedFilter == item.id,
-                          onChanged: (bool? value) {
-                            setState(() {
-                              if (value == true) {
-                                popupSelectedFilter = item.id;
-                              } else {
-                                popupSelectedFilter = null;
-                              }
-                            });
-                          },
-                        ))
-                    .toList()),
+            child: ListBody(children: [
+              const Text("Use one of the following filters for this image:"),
+              const SizedBox(height: 16),
+              Column(
+                  children: defaultColorFilters
+                      .map((item) => CheckboxListTile(
+                            contentPadding: const EdgeInsets.fromLTRB(0, 0, 16, 0),
+                            dense: true,
+                            title: Text(item.name),
+                            value: popupSelectedFilter == item.id,
+                            onChanged: (bool? value) {
+                              setState(() {
+                                if (value == true) {
+                                  popupSelectedFilter = item.id;
+                                } else {
+                                  popupSelectedFilter = null;
+                                }
+                              });
+                            },
+                          ))
+                      .toList())
+            ]),
           );
         }),
         actions: <Widget>[

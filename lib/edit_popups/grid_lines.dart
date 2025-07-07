@@ -39,29 +39,29 @@ Future<void> showGridLinesPopup(
                           controller: gridRowsController,
                           keyboardType: TextInputType.number,
                           decoration: const InputDecoration(
-                            floatingLabelBehavior: FloatingLabelBehavior.always,
+                            border: OutlineInputBorder(),
                             labelText: '# Rows',
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 16),
                         TextField(
                           controller: gridColumnsController,
                           keyboardType: TextInputType.number,
                           decoration: const InputDecoration(
-                            floatingLabelBehavior: FloatingLabelBehavior.always,
+                            border: OutlineInputBorder(),
                             labelText: '# Columns',
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 16),
                         TextField(
                           controller: gridLineWidthController,
                           keyboardType: TextInputType.number,
                           decoration: const InputDecoration(
-                            floatingLabelBehavior: FloatingLabelBehavior.always,
+                            border: OutlineInputBorder(),
                             labelText: 'Line Thickness',
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 16),
                         Row(
                           children: [
                             SizedBox(
