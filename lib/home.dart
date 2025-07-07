@@ -52,9 +52,20 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.indigo[400],
-        title: const Text("Home", style: TextStyle(color: Colors.white)),
+        title: const Text("Your Images", style: TextStyle(color: Colors.white)),
+        actions: [
+          IconButton(
+              color: Colors.white,
+              onPressed: () {
+                firstLoad();
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                  content: Text("Refreshed"),
+                ));
+              },
+              icon: const Icon(Icons.refresh))
+        ],
       ),
-      floatingActionButton: FloatingActionButton.small(
+      floatingActionButton: FloatingActionButton(
           child: const Icon(Icons.upload),
           onPressed: () async {
             await checkForSavedImagesFolder();
@@ -69,68 +80,61 @@ class _HomePageState extends State<HomePage> {
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    const Text("Your Images", style: TextStyle(fontSize: 22)),
-                    const SizedBox(width: 8),
-                    IconButton(
-                        onPressed: () {
-                          firstLoad();
-                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                            content: Text("Refreshed"),
-                          ));
-                        },
-                        icon: const Icon(Icons.refresh))
-                  ],
-                ),
-                const SizedBox(height: 16.0),
                 if (files.isNotEmpty && fileData.length == files.length)
-                  Container(
-                    child: StaggeredGrid.count(
-                      crossAxisCount: 2,
-                      mainAxisSpacing: 4,
-                      crossAxisSpacing: 4,
-                      children: List.generate(files.length, (index) {
-                        return Card(
-                            clipBehavior: Clip.antiAlias,
-                            child: Column(
-                              children: [
-                                SizedBox(width: double.maxFinite, child: Image.file(File(files[index].path))),
-                                const SizedBox(height: 8),
-                                Text(fileData[files.indexOf(files[index])].name),
-                                const SizedBox(height: 4),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    IconButton(
-                                        onPressed: () {
-                                          Navigator.pushNamed(context, "/edit",
-                                                  arguments: EditPageArguments(
-                                                      fileData[files.indexOf(files[index])].id, files[index].path, ""))
-                                              .whenComplete(firstLoad);
-                                        },
-                                        icon: const Icon(Icons.edit)),
-                                    const SizedBox(width: 4),
-                                    IconButton(
-                                        onPressed: () {
-                                          showDeleteImagePopup(context, fileData[files.indexOf(files[index])].id, fileData[files.indexOf(files[index])].name,
-                                                  p.extension(files[index].path))
-                                              .then((e) {
-                                            firstLoad();
-                                          });
-                                        },
-                                        icon: const Icon(Icons.delete)),
-                                  ],
-                                ),
-                              ],
-                            ));
-                      }),
-                    ),
+                  StaggeredGrid.count(
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 4,
+                    crossAxisSpacing: 4,
+                    children: List.generate(files.length, (index) {
+                      return Card(
+                          clipBehavior: Clip.antiAlias,
+                          child: Column(
+                            children: [
+                              SizedBox(width: double.maxFinite, child: Image.file(File(files[index].path))),
+                              // const SizedBox(height: 8),
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                  Text(fileData[files.indexOf(files[index])].name),
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    children: [
+                                      IconButton.filledTonal(
+                                          iconSize: 20,
+                                          onPressed: () {
+                                            Navigator.pushNamed(context, "/edit",
+                                                    arguments: EditPageArguments(
+                                                        fileData[files.indexOf(files[index])].id,
+                                                        files[index].path,
+                                                        ""))
+                                                .whenComplete(firstLoad);
+                                          },
+                                          icon: const Icon(Icons.edit)),
+                                      const SizedBox(width: 4),
+                                      IconButton.filledTonal(
+                                          iconSize: 20,
+                                          onPressed: () {
+                                            showDeleteImagePopup(
+                                                    context,
+                                                    fileData[files.indexOf(files[index])].id,
+                                                    fileData[files.indexOf(files[index])].name,
+                                                    p.extension(files[index].path))
+                                                .then((e) {
+                                              firstLoad();
+                                            });
+                                          },
+                                          icon: const Icon(Icons.delete)),
+                                    ],
+                                  )
+                                ]),
+                              ),
+                            ],
+                          ));
+                    }),
                   )
                 else
-                  const Text("You have not uploaded and edited any images yet"),
+                  const Center(child: Text("You have not uploaded any images yet.", textAlign: TextAlign.center)),
               ]),
             ),
           ),

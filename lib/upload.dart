@@ -140,42 +140,41 @@ class _UploadPageState extends State<UploadPage> {
           child: SingleChildScrollView(
             child: Padding(
               padding: const EdgeInsets.all(16),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                const Text("Pick an Image", style: TextStyle(fontSize: 22)),
-                const SizedBox(height: 16),
-                Center(
-                  child: SizedBox(
-                    width: double.maxFinite,
-                    child: !kIsWeb && defaultTargetPlatform == TargetPlatform.android
-                        ? FutureBuilder<void>(
-                            future: retrieveLostData(),
-                            builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
-                              switch (snapshot.connectionState) {
-                                case ConnectionState.none:
-                                case ConnectionState.waiting:
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.max,
+                crossAxisAlignment: CrossAxisAlignment.center, children: [
+                SizedBox(
+                  width: double.maxFinite,
+                  child: !kIsWeb && defaultTargetPlatform == TargetPlatform.android
+                      ? FutureBuilder<void>(
+                          future: retrieveLostData(),
+                          builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
+                            switch (snapshot.connectionState) {
+                              case ConnectionState.none:
+                              case ConnectionState.waiting:
+                                return const Text(
+                                  "You have not picked an image yet.",
+                                  textAlign: TextAlign.center,
+                                );
+                              case ConnectionState.done:
+                                return _previewImages();
+                              case ConnectionState.active:
+                                if (snapshot.hasError) {
+                                  return Text(
+                                    "Pick image error: ${snapshot.error}}",
+                                    textAlign: TextAlign.center,
+                                  );
+                                } else {
                                   return const Text(
                                     "You have not picked an image yet.",
                                     textAlign: TextAlign.center,
                                   );
-                                case ConnectionState.done:
-                                  return _previewImages();
-                                case ConnectionState.active:
-                                  if (snapshot.hasError) {
-                                    return Text(
-                                      "Pick image error: ${snapshot.error}}",
-                                      textAlign: TextAlign.center,
-                                    );
-                                  } else {
-                                    return const Text(
-                                      "You have not picked an image yet.",
-                                      textAlign: TextAlign.center,
-                                    );
-                                  }
-                              }
-                            },
-                          )
-                        : _previewImages(),
-                  ),
+                                }
+                            }
+                          },
+                        )
+                      : _previewImages(),
                 ),
                 const SizedBox(height: 16),
                 if (selectedFile == null)

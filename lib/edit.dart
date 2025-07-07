@@ -199,7 +199,11 @@ class _EditPageState extends State<EditPage> {
         title: Text(selectedFileName, style: const TextStyle(color: Colors.white)),
       ),
       body: SafeArea(
-        child: Center(child: _previewImages()),
+        child: SizedBox(
+          width: double.maxFinite,
+          height: double.maxFinite,
+          child: Center(child: _previewImages()),
+        ),
       ),
       floatingActionButton: SingleChildScrollView(
         child: Column(
