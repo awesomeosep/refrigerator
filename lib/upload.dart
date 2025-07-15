@@ -130,7 +130,7 @@ class _UploadPageState extends State<UploadPage> {
     return Scaffold(
       appBar: AppBar(
         iconTheme: const IconThemeData(color: Colors.white),
-        backgroundColor: Colors.indigo[400],
+        backgroundColor: Colors.indigo[500],
         title: const Text("Upload Image", style: TextStyle(color: Colors.white)),
       ),
       body: SafeArea(
@@ -225,6 +225,7 @@ class _UploadPageState extends State<UploadPage> {
                                     "Untitled",
                                     newFileId,
                                     ImageData(
+                                      lastModified: DateTime.now(),
                                       cropRect: const Rect.fromLTRB(0, 0, 1, 1),
                                       name: "Untitled",
                                       id: newFileId,

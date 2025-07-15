@@ -195,7 +195,7 @@ class _EditPageState extends State<EditPage> {
     return Scaffold(
       appBar: AppBar(
         iconTheme: const IconThemeData(color: Colors.white),
-        backgroundColor: Colors.indigo[400],
+        backgroundColor: Colors.indigo[500],
         title: Text(selectedFileName, style: const TextStyle(color: Colors.white)),
       ),
       body: SafeArea(
@@ -243,6 +243,7 @@ class _EditPageState extends State<EditPage> {
                           fileName,
                           newFileId,
                           ImageData(
+                            lastModified: DateTime.now(),
                             cropRect: currentCropRect,
                             name: fileName,
                             id: newFileId,
@@ -295,6 +296,7 @@ class _EditPageState extends State<EditPage> {
                         selectedFileName,
                         selectedFileId,
                         ImageData(
+                            lastModified: DateTime.now(),
                             cropRect: newCropRect,
                             name: selectedFileName,
                             id: selectedFileId,

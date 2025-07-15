@@ -48,6 +48,7 @@ class GridOptions {
 }
 
 class ImageData {
+  DateTime lastModified;
   Rect? cropRect;
   String? colorFilter;
   GridOptions gridOptions;
@@ -55,7 +56,8 @@ class ImageData {
   String id;
 
   ImageData(
-      {required this.cropRect,
+      {required this.lastModified,
+      required this.cropRect,
       required this.colorFilter,
       required this.gridOptions,
       required this.name,
@@ -63,6 +65,7 @@ class ImageData {
 
   Map toJson() {
     Map finalObject = {
+      "lastModified": lastModified.toIso8601String(),
       "cropRect": [cropRect!.left, cropRect!.top, cropRect!.right, cropRect!.bottom],
       "gridOptions": gridOptions.toJson(),
       "colorFilter": colorFilter,
@@ -74,6 +77,7 @@ class ImageData {
 
   static ImageData fromJson(jsonObject) {
     return ImageData(
+        lastModified: jsonObject["lastModified"] != null ? DateTime.parse(jsonObject["lastModified"]) : DateTime(2000, 1, 1, 1),
         cropRect: jsonObject["cropRect"] != null
             ? Rect.fromLTRB(jsonObject["cropRect"][0], jsonObject["cropRect"][1], jsonObject["cropRect"][2],
                 jsonObject["cropRect"][3])

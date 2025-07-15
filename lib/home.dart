@@ -8,6 +8,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:drawing_app/edit.dart';
 import 'package:path/path.dart' as p;
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:deepcopy/deepcopy.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -19,8 +20,11 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   List<FileSystemEntity> files = [];
   List<ImageData> fileData = [];
+  String sortBy = "File name";
+  int sortDirection = 1;
+  List filesSorted = [];
 
-  firstLoad() async {
+  void firstLoad() async {
     await checkForSavedImagesFolder();
     final List<FileSystemEntity> entities = await getAllSavedImages();
     setState(() {
@@ -36,6 +40,28 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       fileData = newFileData;
     });
+    sortFiles();
+  }
+
+  void sortFiles() {
+    setState(() {
+      filesSorted = files.deepcopy();
+    });
+    if (fileData.isNotEmpty && files.isNotEmpty) {
+      if (sortBy == "File name") {
+        setState(() {
+          filesSorted.sort((a, b) =>
+              fileData[files.indexOf(a)].name.toLowerCase().compareTo(fileData[files.indexOf(b)].name.toLowerCase()) *
+              sortDirection);
+        });
+      } else if (sortBy == "Date modified") {
+        setState(() {
+          filesSorted.sort((a, b) =>
+              fileData[files.indexOf(a)].lastModified.compareTo(fileData[files.indexOf(b)].lastModified) *
+              sortDirection * -1);
+        });
+      }
+    }
   }
 
   @override
@@ -51,7 +77,7 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.indigo[400],
+        backgroundColor: Colors.indigo[500],
         title: const Text("Your Images", style: TextStyle(color: Colors.white)),
         actions: [
           IconButton(
@@ -80,22 +106,51 @@ class _HomePageState extends State<HomePage> {
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Row(mainAxisAlignment: MainAxisAlignment.start, children: [
+                  const Text("Sort by: "),
+                  const SizedBox(width: 4),
+                  DropdownMenu<String>(
+                    initialSelection: "File name",
+                    onSelected: (String? value) {
+                      setState(() {
+                        sortBy = value!;
+                      });
+                      sortFiles();
+                    },
+                    dropdownMenuEntries: ["File name", "Date modified"]
+                        .map<DropdownMenuEntry<String>>((String name) => DropdownMenuEntry(value: name, label: name))
+                        .toList(),
+                  ),
+                  const SizedBox(width: 4),
+                  IconButton(
+                      onPressed: () {
+                        setState(() {
+                          sortDirection = -sortDirection;
+                        });
+                        sortFiles();
+                      },
+                      icon: Transform.flip(flipY: sortDirection < 0, child: const Icon(Icons.arrow_downward)))
+                ]),
+                const SizedBox(
+                  height: 16,
+                ),
                 if (files.isNotEmpty && fileData.length == files.length)
                   StaggeredGrid.count(
-                    crossAxisCount: 2,
+                    crossAxisCount:
+                        MediaQuery.sizeOf(context).width > 300 ? (MediaQuery.sizeOf(context).width / 150).floor() : 2,
                     mainAxisSpacing: 4,
                     crossAxisSpacing: 4,
-                    children: List.generate(files.length, (index) {
+                    children: List.generate(filesSorted.length, (index) {
                       return Card(
                           clipBehavior: Clip.antiAlias,
                           child: Column(
                             children: [
-                              SizedBox(width: double.maxFinite, child: Image.file(File(files[index].path))),
+                              SizedBox(width: double.maxFinite, child: Image.file(File(filesSorted[index].path))),
                               // const SizedBox(height: 8),
                               Padding(
                                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                                  Text(fileData[files.indexOf(files[index])].name),
+                                  Text(fileData[files.indexOf(filesSorted[index])].name),
                                   const SizedBox(height: 8),
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.start,
@@ -105,8 +160,8 @@ class _HomePageState extends State<HomePage> {
                                           onPressed: () {
                                             Navigator.pushNamed(context, "/edit",
                                                     arguments: EditPageArguments(
-                                                        fileData[files.indexOf(files[index])].id,
-                                                        files[index].path,
+                                                        fileData[files.indexOf(filesSorted[index])].id,
+                                                        filesSorted[index].path,
                                                         ""))
                                                 .whenComplete(firstLoad);
                                           },
@@ -117,9 +172,9 @@ class _HomePageState extends State<HomePage> {
                                           onPressed: () {
                                             showDeleteImagePopup(
                                                     context,
-                                                    fileData[files.indexOf(files[index])].id,
-                                                    fileData[files.indexOf(files[index])].name,
-                                                    p.extension(files[index].path))
+                                                    fileData[files.indexOf(filesSorted[index])].id,
+                                                    fileData[files.indexOf(filesSorted[index])].name,
+                                                    p.extension(filesSorted[index].path))
                                                 .then((e) {
                                               firstLoad();
                                             });
