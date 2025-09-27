@@ -1,10 +1,19 @@
 import 'package:drawing_app/edit.dart';
 import 'package:drawing_app/home.dart';
+import 'package:drawing_app/settings.dart';
 import 'package:drawing_app/upload.dart';
+import 'package:drawing_app/utils/theme_provider.dart';
+import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => ThemeProvider(),
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -12,19 +21,41 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      // themeMode: ThemeMode.system,
-      theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
+    return DynamicColorBuilder(builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) {
+      ColorScheme lightColorScheme;
+      ColorScheme darkColorScheme;
+
+      if (lightDynamic != null && darkDynamic != null) {
+        // Use dynamic colors if available
+        lightColorScheme = lightDynamic.harmonized();
+        darkColorScheme = darkDynamic.harmonized();
+      } else {
+        // Fallback to a baseline color scheme
+        lightColorScheme = ColorScheme.fromSeed(seedColor: Colors.blue);
+        darkColorScheme = ColorScheme.fromSeed(seedColor: Colors.blue, brightness: Brightness.dark);
+      }
+
+      final themeProvider = Provider.of<ThemeProvider>(context);
+
+      return MaterialApp(
+        theme: ThemeData(
+          colorScheme: lightColorScheme,
           useMaterial3: true,
-          scaffoldBackgroundColor: Colors.indigo[50]),
-      title: 'Drawing App',
-      routes: {
-        "/": (context) => const HomePage(),
-        "/home": (context) => const HomePage(),
-        "/upload": (context) => const UploadPage(),
-        "/edit": (context) => const EditPage(),
-      },
-    );
+        ),
+        darkTheme: ThemeData(
+          colorScheme: darkColorScheme,
+          useMaterial3: true,
+        ),
+        title: 'Drawing App',
+        routes: {
+          "/": (context) => const HomePage(),
+          "/home": (context) => const HomePage(),
+          "/upload": (context) => const UploadPage(),
+          "/edit": (context) => const EditPage(),
+          "/settings": (context) => const SettingsPage(),
+        },
+        themeMode: themeProvider.themeMode,
+      );
+    });
   }
 }

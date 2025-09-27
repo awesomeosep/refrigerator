@@ -192,11 +192,11 @@ class _EditPageState extends State<EditPage> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(
-        iconTheme: const IconThemeData(color: Colors.white),
-        backgroundColor: Colors.indigo[500],
-        title: Text(selectedFileName, style: const TextStyle(color: Colors.white)),
+        backgroundColor: colorScheme.inversePrimary,
+        title: Text(selectedFileName),
       ),
       body: SafeArea(
         child: SizedBox(

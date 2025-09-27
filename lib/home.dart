@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:drawing_app/edit_popups/delete_file.dart';
+import 'package:drawing_app/utils/bottom_nav_bar.dart';
 import 'package:drawing_app/utils/edited_image.dart';
 import 'package:flutter/material.dart';
 import 'package:drawing_app/utils/files.dart';
@@ -24,8 +25,12 @@ class _HomePageState extends State<HomePage> {
   String sortBy = "File name";
   int sortDirection = 1;
   List filesSorted = [];
+  bool loadingFiles = false;
 
   void firstLoad() async {
+    setState(() {
+      loadingFiles = true;
+    });
     await checkForSavedImagesFolder();
     final List<FileSystemEntity> entities = await getAllSavedImages();
     setState(() {
@@ -42,6 +47,9 @@ class _HomePageState extends State<HomePage> {
       fileData = newFileData;
     });
     sortFiles();
+    setState(() {
+      loadingFiles = false;
+    });
   }
 
   void sortFiles() {
@@ -77,13 +85,15 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
+      bottomNavigationBar: const MyBottomNavBar(page: 0),
       appBar: AppBar(
-        backgroundColor: Colors.indigo[500],
-        title: const Text("Your Images", style: TextStyle(color: Colors.white)),
+        automaticallyImplyLeading: false,
+        title: const Text("Your Images"),
         actions: [
           IconButton(
-              color: Colors.white,
               onPressed: () {
                 firstLoad();
                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
@@ -136,7 +146,17 @@ class _HomePageState extends State<HomePage> {
                 const SizedBox(
                   height: 16,
                 ),
-                if (files.isNotEmpty && fileData.length == files.length)
+                if (loadingFiles)
+                  Center(
+                    child: Column(
+                      children: [
+                        CircularProgressIndicator(color: colorScheme.primary),
+                        const SizedBox(height: 8),
+                        const Text("Loading your images..."),
+                      ],
+                    ),
+                  )
+                else if (files.isNotEmpty && fileData.length == files.length)
                   StaggeredGrid.count(
                     crossAxisCount:
                         MediaQuery.sizeOf(context).width > 300 ? (MediaQuery.sizeOf(context).width / 150).floor() : 2,
@@ -144,6 +164,10 @@ class _HomePageState extends State<HomePage> {
                     crossAxisSpacing: 4,
                     children: List.generate(filesSorted.length, (index) {
                       return Card(
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(8)),
+                            side: BorderSide(color: Colors.grey, width: 0.5),
+                          ),
                           clipBehavior: Clip.antiAlias,
                           child: Column(
                             children: [
