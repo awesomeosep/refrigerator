@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:drawing_app/utils/files.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:drawing_app/edit.dart';
+import 'package:intl/intl.dart';
 import 'package:path/path.dart' as p;
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:deepcopy/deepcopy.dart';
@@ -58,7 +59,8 @@ class _HomePageState extends State<HomePage> {
         setState(() {
           filesSorted.sort((a, b) =>
               fileData[files.indexOf(a)].lastModified.compareTo(fileData[files.indexOf(b)].lastModified) *
-              sortDirection * -1);
+              sortDirection *
+              -1);
         });
       }
     }
@@ -150,7 +152,14 @@ class _HomePageState extends State<HomePage> {
                               Padding(
                                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                                  Text(fileData[files.indexOf(filesSorted[index])].name),
+                                  Wrap(direction: Axis.horizontal, spacing: 4, runSpacing: 4, children: [
+                                    Text(fileData[files.indexOf(filesSorted[index])].name),
+                                    Text(
+                                      DateFormat.yMMMd()
+                                          .format(fileData[files.indexOf(filesSorted[index])].lastModified),
+                                      style: const TextStyle(color: Colors.grey),
+                                    ),
+                                  ]),
                                   const SizedBox(height: 8),
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.start,

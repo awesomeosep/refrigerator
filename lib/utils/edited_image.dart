@@ -77,7 +77,8 @@ class ImageData {
 
   static ImageData fromJson(jsonObject) {
     return ImageData(
-        lastModified: jsonObject["lastModified"] != null ? DateTime.parse(jsonObject["lastModified"]) : DateTime(2000, 1, 1, 1),
+        lastModified:
+            jsonObject["lastModified"] != null ? DateTime.parse(jsonObject["lastModified"]) : DateTime(2000, 1, 1, 1),
         cropRect: jsonObject["cropRect"] != null
             ? Rect.fromLTRB(jsonObject["cropRect"][0], jsonObject["cropRect"][1], jsonObject["cropRect"][2],
                 jsonObject["cropRect"][3])
@@ -205,9 +206,14 @@ class _EditedImageState extends State<EditedImage> {
             }),
           ),
           if (actualImageSize != null && widget.cropRect != null && widget.gridOptions.gridShowing)
-            Positioned.fill(
-                child: gridLines(actualImageSize!.width * (widget.cropRect!.right - widget.cropRect!.left),
-                    actualImageSize!.height * (widget.cropRect!.bottom - widget.cropRect!.top), widget.gridOptions))
+            Positioned(
+              left: actualImageSize!.width * widget.cropRect!.left,
+              top: actualImageSize!.height * widget.cropRect!.top,
+              width: actualImageSize!.width * (widget.cropRect!.right - widget.cropRect!.left),
+              height: actualImageSize!.height * (widget.cropRect!.bottom - widget.cropRect!.top),
+              child: gridLines(actualImageSize!.width * (widget.cropRect!.right - widget.cropRect!.left),
+                  actualImageSize!.height * (widget.cropRect!.bottom - widget.cropRect!.top), widget.gridOptions),
+            )
         ],
       ),
     );
