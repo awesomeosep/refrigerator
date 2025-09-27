@@ -14,15 +14,16 @@ Future<void> showExportImagePopup(BuildContext context, Uint8List exportedImageD
         content: StatefulBuilder(builder: (BuildContext context, StateSetter setState) {
           return SingleChildScrollView(
             child: ListBody(children: <Widget>[
-              const Text("Exports image with edits to downloads folder."),
+              const Text("Export the image with your edits to your downloads folder."),
+              const SizedBox(height: 16),
               TextField(
                 controller: fileNameController,
                 decoration: const InputDecoration(
-                  floatingLabelBehavior: FloatingLabelBehavior.always,
+                  border: OutlineInputBorder(),
                   labelText: 'File Name',
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 16),
               ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 250, maxHeight: 250),
                 child: Image.memory(exportedImageData),

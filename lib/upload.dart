@@ -70,17 +70,25 @@ class _UploadPageState extends State<UploadPage> {
       return retrieveError;
     }
     if (selectedFile != null) {
-      return ConstrainedBox(
-          constraints: const BoxConstraints(maxHeight: 250),
-          child: kIsWeb
-              ? Image.network(fit: BoxFit.contain, selectedFile!.path)
-              : Image.file(
-                  File(selectedFile!.path),
-                  fit: BoxFit.contain,
-                  errorBuilder: (BuildContext context, Object error, StackTrace? stackTrace) {
-                    return const Center(child: Text('This image type is not supported'));
-                  },
-                ));
+      return SizedBox(
+        width: double.maxFinite,
+        child: Center(
+          child: Card(
+            clipBehavior: Clip.antiAlias,
+            child: ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 250),
+                child: kIsWeb
+                    ? Image.network(fit: BoxFit.contain, selectedFile!.path)
+                    : Image.file(
+                        File(selectedFile!.path),
+                        fit: BoxFit.contain,
+                        errorBuilder: (BuildContext context, Object error, StackTrace? stackTrace) {
+                          return const Center(child: Text('This image type is not supported'));
+                        },
+                      )),
+          ),
+        ),
+      );
     } else if (_pickImageError != null) {
       return Text(
         'Pick image error: $_pickImageError',
@@ -88,7 +96,7 @@ class _UploadPageState extends State<UploadPage> {
       );
     } else {
       return const Text(
-        'You have not yet picked an image.',
+        "You have not picked an image yet.",
         textAlign: TextAlign.center,
       );
     }
@@ -122,116 +130,130 @@ class _UploadPageState extends State<UploadPage> {
     return Scaffold(
       appBar: AppBar(
         iconTheme: const IconThemeData(color: Colors.white),
-        backgroundColor: Colors.indigo[400],
+        backgroundColor: Colors.indigo[500],
         title: const Text("Upload Image", style: TextStyle(color: Colors.white)),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Center(
-            child: Column(
+      body: SafeArea(
+        child: SizedBox(
+          width: double.maxFinite,
+          height: double.maxFinite,
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-              !kIsWeb && defaultTargetPlatform == TargetPlatform.android
-                  ? FutureBuilder<void>(
-                      future: retrieveLostData(),
-                      builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
-                        switch (snapshot.connectionState) {
-                          case ConnectionState.none:
-                          case ConnectionState.waiting:
-                            return const Text(
-                              'You have not yet picked an image.',
-                              textAlign: TextAlign.center,
-                            );
-                          case ConnectionState.done:
-                            return _previewImages();
-                          case ConnectionState.active:
-                            if (snapshot.hasError) {
-                              return Text(
-                                'Pick image/video error: ${snapshot.error}}',
-                                textAlign: TextAlign.center,
-                              );
-                            } else {
-                              return const Text(
-                                'You have not yet picked an image.',
-                                textAlign: TextAlign.center,
-                              );
+                mainAxisSize: MainAxisSize.max,
+                crossAxisAlignment: CrossAxisAlignment.center, children: [
+                SizedBox(
+                  width: double.maxFinite,
+                  child: !kIsWeb && defaultTargetPlatform == TargetPlatform.android
+                      ? FutureBuilder<void>(
+                          future: retrieveLostData(),
+                          builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
+                            switch (snapshot.connectionState) {
+                              case ConnectionState.none:
+                              case ConnectionState.waiting:
+                                return const Text(
+                                  "You have not picked an image yet.",
+                                  textAlign: TextAlign.center,
+                                );
+                              case ConnectionState.done:
+                                return _previewImages();
+                              case ConnectionState.active:
+                                if (snapshot.hasError) {
+                                  return Text(
+                                    "Pick image error: ${snapshot.error}}",
+                                    textAlign: TextAlign.center,
+                                  );
+                                } else {
+                                  return const Text(
+                                    "You have not picked an image yet.",
+                                    textAlign: TextAlign.center,
+                                  );
+                                }
                             }
-                        }
-                      },
-                    )
-                  : _previewImages(),
-              if (selectedFile == null)
-                Column(
-                  children: [
-                    const SizedBox(height: 16),
-                    TextButton.icon(
-                        onPressed: () {
-                          _onImageButtonPressed(ImageSource.gallery, context: context);
-                        },
-                        label: const Text("Pick image from gallery"),
-                        icon: const Icon(Icons.photo)),
-                    const SizedBox(
-                      height: 16,
-                    ),
-                    if (_picker.supportsImageSource(ImageSource.camera))
+                          },
+                        )
+                      : _previewImages(),
+                ),
+                const SizedBox(height: 16),
+                if (selectedFile == null)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const SizedBox(height: 16),
                       TextButton.icon(
                           onPressed: () {
-                            _onImageButtonPressed(ImageSource.camera, context: context);
+                            _onImageButtonPressed(ImageSource.gallery, context: context);
                           },
-                          label: const Text("Take picture"),
-                          icon: const Icon(Icons.camera_alt))
-                  ],
-                )
-              else
-                Column(children: [
-                  const SizedBox(height: 32),
-                  ElevatedButton.icon(
-                      label: const Text("Pick another image"),
-                      onPressed: () {
-                        setState(() {
-                          setSelectedFileVars(null);
-                        });
-                      },
-                      icon: const Icon(Icons.arrow_back)),
-                  const SizedBox(height: 16),
-                  Text("Name: ${selectedFile!.name}"),
-                  Text("Dimensions: ${selectedFileSize!.width} x ${selectedFileSize!.height}"),
-                  Text("Aspect Ratio: ${selectedFileSize!.aspectRatio.toStringAsFixed(2)}"),
-                  const SizedBox(height: 16),
-                  FilledButton(
-                      onPressed: () async {
-                        String newFileId = Random().nextInt(10000000).toString();
-                        String newImagePath =
-                            await saveImage(selectedFile!, newFileId, p.extension(selectedFile!.path));
-                        String savedDataPath = (await saveImageData(
-                                "Untitled",
-                                newFileId,
-                                ImageData(
-                                  name: "Untitled",
-                                  id: newFileId,
-                                  colorFilter: null,
-                                  gridOptions: const GridOptions(
-                                      originalSize: Size(0, 0),
-                                      rows: 4,
-                                      columns: 4,
-                                      gridColor: Colors.red,
-                                      gridLineWidth: 1.0,
-                                      gridShowing: false),
-                                )))
-                            .path;
-                        // context.read<ImageListChanged>().changed = false;
-                        if (context.mounted) {
-                          Navigator.popAndPushNamed(
-                            context,
-                            "/edit",
-                            arguments: EditPageArguments(newFileId, newImagePath, savedDataPath),
-                          );
-                        }
-                      },
-                      child: const Text("Use this image"))
-                ])
-            ])),
+                          label: const Text("Pick from gallery"),
+                          icon: const Icon(Icons.photo)),
+                      const SizedBox(
+                        height: 8,
+                      ),
+                      if (_picker.supportsImageSource(ImageSource.camera))
+                        TextButton.icon(
+                            onPressed: () {
+                              _onImageButtonPressed(ImageSource.camera, context: context);
+                            },
+                            label: const Text("Take picture"),
+                            icon: const Icon(Icons.camera_alt))
+                    ],
+                  )
+                else
+                  Center(
+                    child: Column(children: [
+                      ElevatedButton.icon(
+                          label: const Text("Pick another image"),
+                          onPressed: () {
+                            setState(() {
+                              setSelectedFileVars(null);
+                            });
+                          },
+                          icon: const Icon(Icons.arrow_back)),
+                      const SizedBox(height: 16),
+                      Text("Name: ${selectedFile!.name}", textAlign: TextAlign.center),
+                      Text("Dimensions: ${selectedFileSize!.width} x ${selectedFileSize!.height}"),
+                      Text("Aspect Ratio: ${selectedFileSize!.aspectRatio.toStringAsFixed(2)}"),
+                      const SizedBox(height: 16),
+                      FilledButton(
+                          onPressed: () async {
+                            String newFileId = Random().nextInt(10000000).toString();
+                            String newImagePath =
+                                await saveImage(selectedFile!, newFileId, p.extension(selectedFile!.path));
+                            String savedDataPath = (await saveImageData(
+                                    "Untitled",
+                                    newFileId,
+                                    ImageData(
+                                      lastModified: DateTime.now(),
+                                      cropRect: const Rect.fromLTRB(0, 0, 1, 1),
+                                      name: "Untitled",
+                                      id: newFileId,
+                                      colorFilter: null,
+                                      gridOptions: const GridOptions(
+                                          originalSize: Size(0, 0),
+                                          rows: 4,
+                                          columns: 4,
+                                          gridColor: Colors.red,
+                                          gridLineWidth: 1.0,
+                                          gridShowing: false),
+                                    )))
+                                .path;
+                            if (context.mounted) {
+                              Navigator.popAndPushNamed(
+                                context,
+                                "/edit",
+                                arguments: EditPageArguments(newFileId, newImagePath, savedDataPath),
+                              );
+                            }
+                          },
+                          child: const Text("Use this image"))
+                    ]),
+                  )
+              ]),
+            ),
+          ),
+        ),
       ),
     );
   }

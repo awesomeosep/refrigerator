@@ -1,7 +1,7 @@
 import 'package:drawing_app/utils/files.dart';
 import 'package:flutter/material.dart';
 
-Future<void> showDeleteImagePopup(BuildContext context, String fileId, String imageFileExtension) async {
+Future<void> showDeleteImagePopup(BuildContext context, String fileId, String fileName, String imageFileExtension) async {
   return showDialog<void>(
     context: context,
     barrierDismissible: true,
@@ -9,7 +9,14 @@ Future<void> showDeleteImagePopup(BuildContext context, String fileId, String im
       return AlertDialog(
         title: const Text("Are you sure you want to delete this file?"),
         content: StatefulBuilder(builder: (BuildContext context, StateSetter setState) {
-          return Text("File name: $fileId");
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text("File id: $fileId"),
+              Text("File name: $fileName"),
+            ],
+          );
         }),
         actions: <Widget>[
           TextButton(

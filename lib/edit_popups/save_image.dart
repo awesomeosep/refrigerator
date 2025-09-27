@@ -13,19 +13,20 @@ Future<void> showSavingPopup(BuildContext context, String initialFileName, Funct
         content: StatefulBuilder(builder: (BuildContext context, StateSetter setState) {
           return SingleChildScrollView(
             child: ListBody(children: <Widget>[
-              const Text("Saves image and edits to the app."),
+              const Text("Save the image and edits to the app."),
+              const SizedBox(height: 16),
               TextField(
                 controller: fileNameController,
                 decoration: const InputDecoration(
-                  floatingLabelBehavior: FloatingLabelBehavior.always,
+                  border: OutlineInputBorder(),
                   labelText: 'File Name',
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 16),
               CheckboxListTile(
                 contentPadding: const EdgeInsets.all(0),
                 dense: true,
-                title: const Text("Save a copy?"),
+                title: const Text("Save as a copy?"),
                 value: saveACopy,
                 onChanged: (bool? value) {
                   setState(() {

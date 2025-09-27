@@ -6,7 +6,10 @@ import 'package:flutter/material.dart';
 import 'package:drawing_app/utils/files.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:drawing_app/edit.dart';
+import 'package:intl/intl.dart';
 import 'package:path/path.dart' as p;
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:deepcopy/deepcopy.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -18,33 +21,55 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   List<FileSystemEntity> files = [];
   List<ImageData> fileData = [];
-  // bool _dataLoaded = false;
+  String sortBy = "File name";
+  int sortDirection = 1;
+  List filesSorted = [];
 
-  firstLoad() async {
+  void firstLoad() async {
     await checkForSavedImagesFolder();
     final List<FileSystemEntity> entities = await getAllSavedImages();
     setState(() {
       files = entities;
     });
-    // print(files.length);
     List<ImageData> newFileData = [];
     if (files.isNotEmpty) {
       for (int i = 0; i < files.length; i++) {
-        // print(await File(files[i].path).exists());
         ImageData thisFileData = await getSavedImageData(p.basenameWithoutExtension(XFile(files[i].path).name));
         newFileData.add(thisFileData);
       }
     }
-    // print(newFileData.length);
     setState(() {
       fileData = newFileData;
     });
+    sortFiles();
+  }
+
+  void sortFiles() {
+    setState(() {
+      filesSorted = files.deepcopy();
+    });
+    if (fileData.isNotEmpty && files.isNotEmpty) {
+      if (sortBy == "File name") {
+        setState(() {
+          filesSorted.sort((a, b) =>
+              fileData[files.indexOf(a)].name.toLowerCase().compareTo(fileData[files.indexOf(b)].name.toLowerCase()) *
+              sortDirection);
+        });
+      } else if (sortBy == "Date modified") {
+        setState(() {
+          filesSorted.sort((a, b) =>
+              fileData[files.indexOf(a)].lastModified.compareTo(fileData[files.indexOf(b)].lastModified) *
+              sortDirection *
+              -1);
+        });
+      }
+    }
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // print("home did change dependencies");
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       firstLoad();
     });
@@ -54,78 +79,128 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.indigo[400],
-        title: const Text("Home", style: TextStyle(color: Colors.white)),
+        backgroundColor: Colors.indigo[500],
+        title: const Text("Your Images", style: TextStyle(color: Colors.white)),
+        actions: [
+          IconButton(
+              color: Colors.white,
+              onPressed: () {
+                firstLoad();
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                  content: Text("Refreshed"),
+                ));
+              },
+              icon: const Icon(Icons.refresh))
+        ],
       ),
-      body: SizedBox(
-        width: double.infinity,
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const Text("New Image", style: TextStyle(fontSize: 22)),
-              const SizedBox(height: 16),
-              FilledButton.icon(
-                  icon: const Icon(Icons.upload),
-                  onPressed: () async {
-                    await checkForSavedImagesFolder();
-                    if (context.mounted) {
-                      Navigator.pushNamed(context, "/upload").whenComplete(firstLoad);
-                    }
-                  },
-                  label: const Text("Upload Image")),
-              const SizedBox(height: 16),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  const Text("Uploaded Images", style: TextStyle(fontSize: 22)),
-                  const SizedBox(width: 8),
+      floatingActionButton: FloatingActionButton(
+          child: const Icon(Icons.upload),
+          onPressed: () async {
+            await checkForSavedImagesFolder();
+            if (context.mounted) {
+              Navigator.pushNamed(context, "/upload").whenComplete(firstLoad);
+            }
+          }),
+      body: SafeArea(
+        child: SizedBox(
+          width: double.infinity,
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Row(mainAxisAlignment: MainAxisAlignment.start, children: [
+                  const Text("Sort by: "),
+                  const SizedBox(width: 4),
+                  DropdownMenu<String>(
+                    initialSelection: "File name",
+                    onSelected: (String? value) {
+                      setState(() {
+                        sortBy = value!;
+                      });
+                      sortFiles();
+                    },
+                    dropdownMenuEntries: ["File name", "Date modified"]
+                        .map<DropdownMenuEntry<String>>((String name) => DropdownMenuEntry(value: name, label: name))
+                        .toList(),
+                  ),
+                  const SizedBox(width: 4),
                   IconButton(
                       onPressed: () {
-                        firstLoad();
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                          content: Text("Refreshed"),
-                        ));
+                        setState(() {
+                          sortDirection = -sortDirection;
+                        });
+                        sortFiles();
                       },
-                      icon: const Icon(Icons.refresh))
-                ],
-              ),
-              const SizedBox(height: 16.0),
-              if (files.isNotEmpty && fileData.length == files.length)
-                Wrap(
-                    direction: Axis.vertical,
-                    spacing: 8,
-                    children: files
-                        .map((item) => Wrap(
-                              crossAxisAlignment: WrapCrossAlignment.center,
-                              spacing: 8,
-                              runSpacing: 8,
-                              children: [
-                                SizedBox(height: 28, width: 28, child: Image.file(File(item.path))),
-                                Text(fileData[files.indexOf(item)].name),
-                                IconButton(
-                                    onPressed: () {
-                                      Navigator.pushNamed(context, "/edit",
-                                              arguments:
-                                                  EditPageArguments(fileData[files.indexOf(item)].id, item.path, ""))
-                                          .whenComplete(firstLoad);
-                                    },
-                                    icon: const Icon(Icons.edit)),
-                                IconButton(
-                                    onPressed: () {
-                                      showDeleteImagePopup(
-                                              context, fileData[files.indexOf(item)].id, p.extension(item.path))
-                                          .then((e) {
-                                        firstLoad();
-                                      });
-                                    },
-                                    icon: const Icon(Icons.delete)),
-                              ],
-                            ))
-                        .toList())
-              else
-                const Text("You have not uploaded and edited any images yet"),
-            ]),
+                      icon: Transform.flip(flipY: sortDirection < 0, child: const Icon(Icons.arrow_downward)))
+                ]),
+                const SizedBox(
+                  height: 16,
+                ),
+                if (files.isNotEmpty && fileData.length == files.length)
+                  StaggeredGrid.count(
+                    crossAxisCount:
+                        MediaQuery.sizeOf(context).width > 300 ? (MediaQuery.sizeOf(context).width / 150).floor() : 2,
+                    mainAxisSpacing: 4,
+                    crossAxisSpacing: 4,
+                    children: List.generate(filesSorted.length, (index) {
+                      return Card(
+                          clipBehavior: Clip.antiAlias,
+                          child: Column(
+                            children: [
+                              SizedBox(width: double.maxFinite, child: Image.file(File(filesSorted[index].path))),
+                              // const SizedBox(height: 8),
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                  Wrap(direction: Axis.horizontal, spacing: 4, runSpacing: 4, children: [
+                                    Text(fileData[files.indexOf(filesSorted[index])].name),
+                                    Text(
+                                      DateFormat.yMMMd()
+                                          .format(fileData[files.indexOf(filesSorted[index])].lastModified),
+                                      style: const TextStyle(color: Colors.grey),
+                                    ),
+                                  ]),
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    children: [
+                                      IconButton.filledTonal(
+                                          iconSize: 20,
+                                          onPressed: () {
+                                            Navigator.pushNamed(context, "/edit",
+                                                    arguments: EditPageArguments(
+                                                        fileData[files.indexOf(filesSorted[index])].id,
+                                                        filesSorted[index].path,
+                                                        ""))
+                                                .whenComplete(firstLoad);
+                                          },
+                                          icon: const Icon(Icons.edit)),
+                                      const SizedBox(width: 4),
+                                      IconButton.filledTonal(
+                                          iconSize: 20,
+                                          onPressed: () {
+                                            showDeleteImagePopup(
+                                                    context,
+                                                    fileData[files.indexOf(filesSorted[index])].id,
+                                                    fileData[files.indexOf(filesSorted[index])].name,
+                                                    p.extension(filesSorted[index].path))
+                                                .then((e) {
+                                              firstLoad();
+                                            });
+                                          },
+                                          icon: const Icon(Icons.delete)),
+                                    ],
+                                  )
+                                ]),
+                              ),
+                            ],
+                          ));
+                    }),
+                  )
+                else
+                  const Center(child: Text("You have not uploaded any images yet.", textAlign: TextAlign.center)),
+              ]),
+            ),
           ),
         ),
       ),

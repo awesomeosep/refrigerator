@@ -48,20 +48,41 @@ class GridOptions {
 }
 
 class ImageData {
+  DateTime lastModified;
+  Rect? cropRect;
   String? colorFilter;
   GridOptions gridOptions;
   String name;
   String id;
 
-  ImageData({required this.colorFilter, required this.gridOptions, required this.name, required this.id});
+  ImageData(
+      {required this.lastModified,
+      required this.cropRect,
+      required this.colorFilter,
+      required this.gridOptions,
+      required this.name,
+      required this.id});
 
   Map toJson() {
-    Map finalObject = {"gridOptions": gridOptions.toJson(), "colorFilter": colorFilter, "name": name, "id": id};
+    Map finalObject = {
+      "lastModified": lastModified.toIso8601String(),
+      "cropRect": [cropRect!.left, cropRect!.top, cropRect!.right, cropRect!.bottom],
+      "gridOptions": gridOptions.toJson(),
+      "colorFilter": colorFilter,
+      "name": name,
+      "id": id
+    };
     return finalObject;
   }
 
   static ImageData fromJson(jsonObject) {
     return ImageData(
+        lastModified:
+            jsonObject["lastModified"] != null ? DateTime.parse(jsonObject["lastModified"]) : DateTime(2000, 1, 1, 1),
+        cropRect: jsonObject["cropRect"] != null
+            ? Rect.fromLTRB(jsonObject["cropRect"][0], jsonObject["cropRect"][1], jsonObject["cropRect"][2],
+                jsonObject["cropRect"][3])
+            : null,
         colorFilter: jsonObject["colorFilter"],
         gridOptions: GridOptions.fromJson(jsonObject["gridOptions"]),
         name: jsonObject["name"],
@@ -73,9 +94,11 @@ class EditedImage extends StatefulWidget {
   final XFile image;
   final GridOptions gridOptions;
   final NamedColorFilter? filter;
+  final Rect? cropRect;
 
   const EditedImage({
     super.key,
+    required this.cropRect,
     required this.image,
     required this.gridOptions,
     required this.filter,
@@ -83,6 +106,30 @@ class EditedImage extends StatefulWidget {
 
   @override
   State<EditedImage> createState() => _EditedImageState();
+}
+
+class MyRectClipper extends CustomClipper<Rect> {
+  final double left;
+  final double top;
+  final double right;
+  final double bottom;
+
+  MyRectClipper({
+    required this.left,
+    required this.top,
+    required this.right,
+    required this.bottom,
+  });
+
+  @override
+  Rect getClip(Size size) {
+    return Rect.fromLTRB(left, top, right, bottom);
+  }
+
+  @override
+  bool shouldReclip(covariant CustomClipper<Rect> oldClipper) {
+    return oldClipper != this;
+  }
 }
 
 class _EditedImageState extends State<EditedImage> {
@@ -99,7 +146,6 @@ class _EditedImageState extends State<EditedImage> {
     } else {
       setState(() {
         actualImageSize = renderBox.size;
-        // _imageLoaded = true;
       });
     }
   }
@@ -130,24 +176,44 @@ class _EditedImageState extends State<EditedImage> {
           ConstrainedBox(
             constraints: const BoxConstraints.expand(),
             child: LayoutBuilder(builder: (BuildContext context, BoxConstraints constraints) {
-              return ColorFiltered(
-                  colorFilter: (widget.filter == null)
-                      ? const ColorFilter.matrix([1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0])
-                      : widget.filter!.filter,
-                  child: kIsWeb
-                      ? Image.network(fit: BoxFit.contain, widget.image.path, frameBuilder: imageFrameBuilder)
-                      : Image.file(
-                          File(widget.image.path),
-                          fit: BoxFit.contain,
-                          errorBuilder: (BuildContext context, Object error, StackTrace? stackTrace) {
-                            return const Center(child: Text('This image type is not supported'));
-                          },
-                          frameBuilder: imageFrameBuilder,
-                        ));
+              return Container(
+                child: ClipRect(
+                    clipper: actualImageSize == null
+                        ? MyRectClipper(left: 0, top: 0, right: 0, bottom: 0)
+                        : (widget.cropRect == null
+                            ? MyRectClipper(
+                                left: 0, top: 0, right: actualImageSize!.width * 1, bottom: actualImageSize!.height * 1)
+                            : MyRectClipper(
+                                left: actualImageSize!.width * widget.cropRect!.left,
+                                top: actualImageSize!.height * widget.cropRect!.top,
+                                right: actualImageSize!.width * widget.cropRect!.right,
+                                bottom: actualImageSize!.height * widget.cropRect!.bottom)),
+                    child: ColorFiltered(
+                        colorFilter: (widget.filter == null)
+                            ? const ColorFilter.matrix([1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0])
+                            : widget.filter!.filter,
+                        child: kIsWeb
+                            ? Image.network(fit: BoxFit.contain, widget.image.path, frameBuilder: imageFrameBuilder)
+                            : Image.file(
+                                File(widget.image.path),
+                                fit: BoxFit.contain,
+                                errorBuilder: (BuildContext context, Object error, StackTrace? stackTrace) {
+                                  return const Center(child: Text('This image type is not supported'));
+                                },
+                                frameBuilder: imageFrameBuilder,
+                              ))),
+              );
             }),
           ),
-          if (actualImageSize != null && widget.gridOptions.gridShowing)
-            Positioned.fill(child: gridLines(actualImageSize!.width, actualImageSize!.height, widget.gridOptions))
+          if (actualImageSize != null && widget.cropRect != null && widget.gridOptions.gridShowing)
+            Positioned(
+              left: actualImageSize!.width * widget.cropRect!.left,
+              top: actualImageSize!.height * widget.cropRect!.top,
+              width: actualImageSize!.width * (widget.cropRect!.right - widget.cropRect!.left),
+              height: actualImageSize!.height * (widget.cropRect!.bottom - widget.cropRect!.top),
+              child: gridLines(actualImageSize!.width * (widget.cropRect!.right - widget.cropRect!.left),
+                  actualImageSize!.height * (widget.cropRect!.bottom - widget.cropRect!.top), widget.gridOptions),
+            )
         ],
       ),
     );
