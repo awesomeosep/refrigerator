@@ -192,10 +192,9 @@ class _EditPageState extends State<EditPage> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: colorScheme.inversePrimary,
+        // backgroundColor: colorScheme.inversePrimary,
         title: Text(selectedFileName),
       ),
       body: SafeArea(

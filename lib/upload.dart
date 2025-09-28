@@ -127,11 +127,10 @@ class _UploadPageState extends State<UploadPage> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: colorScheme.inversePrimary,
-        title: const Text("Upload Image"),
+        // backgroundColor: colorScheme.inversePrimary,
+        title: const Text("Add Reference"),
       ),
       body: SafeArea(
         child: SizedBox(

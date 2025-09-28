@@ -124,7 +124,7 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-          child: const Icon(Icons.upload),
+          child: const Icon(Icons.add),
           onPressed: () async {
             await checkForSavedImagesFolder();
             if (context.mounted) {
