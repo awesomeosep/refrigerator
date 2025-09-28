@@ -100,17 +100,28 @@ class _HomePageState extends State<HomePage> {
       bottomNavigationBar: const MyBottomNavBar(page: 0),
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: const Text("References"),
-        actions: [
-          IconButton(
-              onPressed: () {
-                firstLoad();
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                  content: Text("Refreshed"),
-                ));
-              },
-              icon: const Icon(Icons.refresh))
-        ],
+        clipBehavior: Clip.none,
+        title: SearchAnchor.bar(
+          barHintText: "Search references",
+          barElevation: const WidgetStatePropertyAll(2),
+          suggestionsBuilder: (BuildContext context, SearchController controller) {
+            // Implement your search suggestions here
+            return List<ListTile>.generate(files.where((item) => fileData[files.indexOf(item)].name.toLowerCase().contains(controller.text.toLowerCase())).length, (int index) {
+              final itemFile = files.where((item) => fileData[files.indexOf(item)].name.toLowerCase().contains(controller.text.toLowerCase())).elementAt(index);
+              final itemData = fileData[files.indexOf(itemFile)];
+              return ListTile(
+                title: Text(itemData.name),
+                subtitle: Text(DateFormat.yMMMd().format(itemData.lastModified)),
+                onTap: () {
+                  Navigator.pushNamed(context, "/edit",
+                          arguments: EditPageArguments(
+                              itemData.id, itemFile.path, ""))
+                      .whenComplete(firstLoad);
+                },
+              );
+            });
+          },
+        ),
       ),
       floatingActionButton: FloatingActionButton(
           child: const Icon(Icons.upload),
