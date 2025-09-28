@@ -35,9 +35,8 @@ flutter run
 ## 📃 TODO Features:
 - Branding & Favicon
 - Build & Release
-- Search files by name
 - More image editing features
   - more intutive image filtering (show example of effect, or rename them)
   - crop "shapes"
-- Swipe to refresh
 - Tagging & Groups
+- Loading icon on save edits for each popup
