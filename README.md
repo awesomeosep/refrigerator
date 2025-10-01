@@ -33,7 +33,6 @@ flutter run
 ```
 
 ## 📃 TODO Features:
-- Build & Release
 - More image editing features
   - more intutive image filtering (show example of effect, or rename them)
   - crop "shapes"
