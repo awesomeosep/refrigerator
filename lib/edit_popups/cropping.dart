@@ -4,7 +4,8 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:crop_image/crop_image.dart';
 
-Future<void> showCropImagePopup(BuildContext context, Rect? initialCropRect, Uint8List imageData, Function onUpdate) async {
+Future<void> showCropImagePopup(
+    BuildContext context, Rect? initialCropRect, Uint8List imageData, Function onUpdate) async {
   return showDialog<void>(
     context: context,
     barrierDismissible: true,
@@ -14,9 +15,12 @@ Future<void> showCropImagePopup(BuildContext context, Rect? initialCropRect, Uin
         defaultCrop: initialCropRect ?? const Rect.fromLTRB(0, 0, 1, 1),
       );
 
-      return AlertDialog(
-        content: StatefulBuilder(builder: (BuildContext context, StateSetter setState) {
-          return SizedBox(
+      final colorScheme = Theme.of(context).colorScheme;
+      bool isSaving = false;
+
+      return StatefulBuilder(builder: (BuildContext context, StateSetter setState) {
+        return AlertDialog(
+          content: SizedBox(
             width: double.maxFinite,
             height: double.maxFinite,
             child: Column(
@@ -39,7 +43,7 @@ Future<void> showCropImagePopup(BuildContext context, Rect? initialCropRect, Uin
                     FilledButton(
                         style: ButtonStyle(
                             backgroundColor: WidgetStatePropertyAll(
-                                cropController.aspectRatio == null ? Colors.indigo : Colors.indigo[200])),
+                                cropController.aspectRatio == null ? colorScheme.primary : colorScheme.inversePrimary)),
                         onPressed: () {
                           setState(() {
                             cropController.aspectRatio = null;
@@ -48,8 +52,9 @@ Future<void> showCropImagePopup(BuildContext context, Rect? initialCropRect, Uin
                         child: const Text("Free")),
                     FilledButton(
                         style: ButtonStyle(
-                            backgroundColor: WidgetStatePropertyAll(
-                                cropController.aspectRatio == (16 / 9) ? Colors.indigo : Colors.indigo[200])),
+                            backgroundColor: WidgetStatePropertyAll(cropController.aspectRatio == (16 / 9)
+                                ? colorScheme.primary
+                                : colorScheme.inversePrimary)),
                         onPressed: () {
                           setState(() {
                             cropController.aspectRatio = (16 / 9);
@@ -58,8 +63,9 @@ Future<void> showCropImagePopup(BuildContext context, Rect? initialCropRect, Uin
                         child: const Text("16:9")),
                     FilledButton(
                         style: ButtonStyle(
-                            backgroundColor: WidgetStatePropertyAll(
-                                cropController.aspectRatio == (3 / 2) ? Colors.indigo : Colors.indigo[200])),
+                            backgroundColor: WidgetStatePropertyAll(cropController.aspectRatio == (3 / 2)
+                                ? colorScheme.primary
+                                : colorScheme.inversePrimary)),
                         onPressed: () {
                           setState(() {
                             cropController.aspectRatio = (3 / 2);
@@ -69,7 +75,7 @@ Future<void> showCropImagePopup(BuildContext context, Rect? initialCropRect, Uin
                     FilledButton(
                         style: ButtonStyle(
                             backgroundColor: WidgetStatePropertyAll(
-                                cropController.aspectRatio == 1 ? Colors.indigo : Colors.indigo[200])),
+                                cropController.aspectRatio == 1 ? colorScheme.primary : colorScheme.inversePrimary)),
                         onPressed: () {
                           setState(() {
                             cropController.aspectRatio = 1;
@@ -163,27 +169,51 @@ Future<void> showCropImagePopup(BuildContext context, Rect? initialCropRect, Uin
                 ),
               ],
             ),
-          );
-        }),
-        actions: <Widget>[
-          TextButton(
-            child: const Text('Close'),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
           ),
-          FilledButton(
-            child: const Text('Save'),
-            onPressed: () async {
-              ui.Image croppedImage = await cropController.croppedBitmap();
-              ByteData? data = await croppedImage.toByteData(format: ui.ImageByteFormat.png);
-              Uint8List bytes = data!.buffer.asUint8List();
-              onUpdate(bytes, cropController.crop);
-              if (context.mounted) Navigator.of(context).pop();
-            },
-          ),
-        ],
-      );
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Close'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            FilledButton(
+              onPressed: isSaving
+                  ? null
+                  : () async {
+                      setState(() {
+                        isSaving = true;
+                      });
+                      ui.Image croppedImage = await cropController.croppedBitmap();
+                      ByteData? data = await croppedImage.toByteData(format: ui.ImageByteFormat.png);
+                      Uint8List bytes = data!.buffer.asUint8List();
+                      onUpdate(bytes, cropController.crop);
+                      setState(() {
+                        isSaving = false;
+                      });
+                      if (context.mounted) Navigator.of(context).pop();
+                    },
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  isSaving
+                      ? SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            color: colorScheme.inversePrimary,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : Container(),
+                  isSaving ? const SizedBox(width: 16) : Container(),
+                  const Text('Save'),
+                ],
+              ),
+            ),
+          ],
+        );
+      });
     },
   );
 }

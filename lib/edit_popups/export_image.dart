@@ -8,11 +8,13 @@ Future<void> showExportImagePopup(BuildContext context, Uint8List exportedImageD
     barrierDismissible: true,
     builder: (BuildContext context) {
       TextEditingController fileNameController = TextEditingController(text: fileName);
+      bool isLoading = false;
+      final colorScheme = Theme.of(context).colorScheme;
 
-      return AlertDialog(
-        title: const Text('Export Image'),
-        content: StatefulBuilder(builder: (BuildContext context, StateSetter setState) {
-          return SingleChildScrollView(
+      return StatefulBuilder(builder: (BuildContext context, StateSetter setState) {
+        return AlertDialog(
+          title: const Text('Export Image'),
+          content: SingleChildScrollView(
             child: ListBody(children: <Widget>[
               const Text("Export the image with your edits to your downloads folder."),
               const SizedBox(height: 16),
@@ -29,27 +31,49 @@ Future<void> showExportImagePopup(BuildContext context, Uint8List exportedImageD
                 child: Image.memory(exportedImageData),
               ),
             ]),
-          );
-        }),
-        actions: <Widget>[
-          TextButton(
-            child: const Text('Close'),
-            onPressed: () async {
-              Navigator.of(context).pop();
-            },
           ),
-          FilledButton(
-            child: const Text('Export Image'),
-            onPressed: () {
-              exportImageFromData(exportedImageData, fileNameController.text);
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                content: Text("Exported to downloads"),
-              ));
-              Navigator.pop(context);
-            },
-          ),
-        ],
-      );
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Close'),
+              onPressed: () async {
+                Navigator.of(context).pop();
+              },
+            ),
+            FilledButton(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  isLoading
+                      ? SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            color: colorScheme.inversePrimary,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : Container(),
+                  isLoading ? const SizedBox(width: 16) : Container(),
+                  const Text('Export Image'),
+                ],
+              ),
+              onPressed: () {
+                setState(() {
+                  isLoading = true;
+                });
+                exportImageFromData(exportedImageData, fileNameController.text);
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                  content: Text("Exported to downloads"),
+                ));
+                setState(() {
+                  isLoading = false;
+                });
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        );
+      });
     },
   );
 }
