@@ -1,6 +1,6 @@
 {
-    "name": "drawing_app",
-    "short_name": "drawing_app",
+    "name": "refrigerator",
+    "short_name": "refrigerator",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

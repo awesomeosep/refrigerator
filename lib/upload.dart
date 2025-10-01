@@ -1,10 +1,10 @@
 import 'dart:io';
 import 'dart:math';
 
-import 'package:drawing_app/edit.dart';
-import 'package:drawing_app/utils/edited_image.dart';
-import 'package:drawing_app/utils/files.dart';
-import 'package:drawing_app/utils/get_image_dimensions.dart';
+import 'package:refrigerator/edit.dart';
+import 'package:refrigerator/utils/edited_image.dart';
+import 'package:refrigerator/utils/files.dart';
+import 'package:refrigerator/utils/get_image_dimensions.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';

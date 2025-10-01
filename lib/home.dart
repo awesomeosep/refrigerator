@@ -1,12 +1,12 @@
 import 'dart:io';
 
-import 'package:drawing_app/edit_popups/delete_file.dart';
-import 'package:drawing_app/utils/bottom_nav_bar.dart';
-import 'package:drawing_app/utils/edited_image.dart';
+import 'package:refrigerator/edit_popups/delete_file.dart';
+import 'package:refrigerator/utils/bottom_nav_bar.dart';
+import 'package:refrigerator/utils/edited_image.dart';
 import 'package:flutter/material.dart';
-import 'package:drawing_app/utils/files.dart';
+import 'package:refrigerator/utils/files.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:drawing_app/edit.dart';
+import 'package:refrigerator/edit.dart';
 import 'package:intl/intl.dart';
 import 'package:path/path.dart' as p;
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
@@ -105,7 +105,6 @@ class _HomePageState extends State<HomePage> {
           barHintText: "Search references",
           barElevation: const WidgetStatePropertyAll(2),
           suggestionsBuilder: (BuildContext context, SearchController controller) {
-            // Implement your search suggestions here
             return List<ListTile>.generate(files.where((item) => fileData[files.indexOf(item)].name.toLowerCase().contains(controller.text.toLowerCase())).length, (int index) {
               final itemFile = files.where((item) => fileData[files.indexOf(item)].name.toLowerCase().contains(controller.text.toLowerCase())).elementAt(index);
               final itemData = fileData[files.indexOf(itemFile)];

@@ -1,8 +1,8 @@
-import 'package:drawing_app/edit.dart';
-import 'package:drawing_app/home.dart';
-import 'package:drawing_app/settings.dart';
-import 'package:drawing_app/upload.dart';
-import 'package:drawing_app/utils/theme_provider.dart';
+import 'package:refrigerator/edit.dart';
+import 'package:refrigerator/home.dart';
+import 'package:refrigerator/settings.dart';
+import 'package:refrigerator/upload.dart';
+import 'package:refrigerator/utils/theme_provider.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';

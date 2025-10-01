@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:drawing_app/utils/edited_image.dart';
+import 'package:refrigerator/utils/edited_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
@@ -25,12 +25,12 @@ Future<String> get getLocalPath async {
 
 Future<String> get getImagesDirectory async {
   String localPath = await getLocalPath;
-  return "$localPath/_drawing_app_data/saved_images";
+  return "$localPath/_refrigerator_data/saved_images";
 }
 
 Future<String> get getImageDataDirectory async {
   String localPath = await getLocalPath;
-  return "$localPath/_drawing_app_data/image_data";
+  return "$localPath/_refrigerator_data/image_data";
 }
 
 Future<String> get getDownloadsPath async {

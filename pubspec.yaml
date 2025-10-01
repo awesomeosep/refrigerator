@@ -1,5 +1,5 @@
-name: drawing_app
-description: "A new Flutter project."
+name: refrigerator
+description: "A user-friendly mobile app for creative people to store, manage, and edit their artistic references!"
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
