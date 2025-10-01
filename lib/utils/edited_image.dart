@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:drawing_app/edit.dart';
+import 'package:refrigerator/edit.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';

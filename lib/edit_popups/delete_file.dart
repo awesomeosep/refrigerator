@@ -1,4 +1,4 @@
-import 'package:drawing_app/utils/files.dart';
+import 'package:refrigerator/utils/files.dart';
 import 'package:flutter/material.dart';
 
 Future<void> showDeleteImagePopup(

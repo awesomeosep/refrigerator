@@ -1,4 +1,4 @@
-import 'package:drawing_app/utils/default_color_filters.dart';
+import 'package:refrigerator/utils/default_color_filters.dart';
 import 'package:flutter/material.dart';
 
 Future<void> showImageFiltersPopup(BuildContext context, String? initialFilter, Function onUpdate) async {

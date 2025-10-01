@@ -1,5 +1,5 @@
-import 'package:drawing_app/utils/bottom_nav_bar.dart';
-import 'package:drawing_app/utils/theme_provider.dart';
+import 'package:refrigerator/utils/bottom_nav_bar.dart';
+import 'package:refrigerator/utils/theme_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
