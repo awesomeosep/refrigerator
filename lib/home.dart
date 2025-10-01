@@ -28,7 +28,7 @@ class _HomePageState extends State<HomePage> {
   bool loadingFiles = false;
   bool hideFiles = false;
 
-  void firstLoad([bool showLoading = true]) async {
+  Future<void> firstLoad([bool showLoading = true]) async {
     if (showLoading) {
       setState(() {
         loadingFiles = true;
@@ -136,9 +136,13 @@ class _HomePageState extends State<HomePage> {
           child: RefreshIndicator(
             key: _refreshIndicatorKey,
             onRefresh: () async {
-              firstLoad(false);
+              await firstLoad(false);
             },
             child: SingleChildScrollView(
+              // Ensure the scroll view is always scrollable so the RefreshIndicator
+              // can be triggered even when the content doesn't overflow the viewport.
+              physics: const AlwaysScrollableScrollPhysics(),
+              primary: true,
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
