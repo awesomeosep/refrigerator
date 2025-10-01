@@ -33,10 +33,8 @@ flutter run
 ```
 
 ## 📃 TODO Features:
-- Branding & Favicon
 - Build & Release
 - More image editing features
   - more intutive image filtering (show example of effect, or rename them)
   - crop "shapes"
 - Tagging & Groups
-- Loading icon on save edits for each popup
