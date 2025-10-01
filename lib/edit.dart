@@ -194,9 +194,8 @@ class _EditPageState extends State<EditPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        iconTheme: const IconThemeData(color: Colors.white),
-        backgroundColor: Colors.indigo[500],
-        title: Text(selectedFileName, style: const TextStyle(color: Colors.white)),
+        // backgroundColor: colorScheme.inversePrimary,
+        title: Text(selectedFileName),
       ),
       body: SafeArea(
         child: SizedBox(

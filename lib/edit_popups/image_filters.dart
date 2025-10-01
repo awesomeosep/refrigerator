@@ -7,10 +7,12 @@ Future<void> showImageFiltersPopup(BuildContext context, String? initialFilter, 
     barrierDismissible: true,
     builder: (BuildContext context) {
       String? popupSelectedFilter = initialFilter;
+      bool isLoading = false;
+      final colorScheme = Theme.of(context).colorScheme;
 
-      return AlertDialog(
-        content: StatefulBuilder(builder: (BuildContext context, StateSetter setState) {
-          return SingleChildScrollView(
+      return StatefulBuilder(builder: (BuildContext context, StateSetter setState) {
+        return AlertDialog(
+          content: SingleChildScrollView(
             child: ListBody(children: [
               const Text("Use one of the following filters for this image:"),
               const SizedBox(height: 16),
@@ -33,24 +35,46 @@ Future<void> showImageFiltersPopup(BuildContext context, String? initialFilter, 
                           ))
                       .toList())
             ]),
-          );
-        }),
-        actions: <Widget>[
-          TextButton(
-            child: const Text('Close'),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
           ),
-          FilledButton(
-            child: const Text('Update'),
-            onPressed: () {
-              onUpdate(popupSelectedFilter);
-              Navigator.of(context).pop();
-            },
-          ),
-        ],
-      );
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Close'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            FilledButton(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  isLoading
+                      ? SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            color: colorScheme.inversePrimary,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : Container(),
+                  isLoading ? const SizedBox(width: 16) : Container(),
+                  const Text('Update'),
+                ],
+              ),
+              onPressed: () {
+                setState(() {
+                  isLoading = true;
+                });
+                onUpdate(popupSelectedFilter);
+                setState(() {
+                  isLoading = false;
+                });
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      });
     },
   );
 }

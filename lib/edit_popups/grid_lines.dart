@@ -2,8 +2,7 @@ import 'package:drawing_app/utils/edited_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 
-Future<void> showGridLinesPopup(
-    BuildContext context, GridOptions initialGridOptions, Function onUpdate) async {
+Future<void> showGridLinesPopup(BuildContext context, GridOptions initialGridOptions, Function onUpdate) async {
   return showDialog<void>(
     context: context,
     barrierDismissible: true,
@@ -12,11 +11,14 @@ Future<void> showGridLinesPopup(
       bool showGrid = initialGridOptions.gridShowing;
       TextEditingController gridRowsController = TextEditingController(text: initialGridOptions.rows.toString());
       TextEditingController gridColumnsController = TextEditingController(text: initialGridOptions.columns.toString());
-      TextEditingController gridLineWidthController = TextEditingController(text: initialGridOptions.gridLineWidth.toString());
+      TextEditingController gridLineWidthController =
+          TextEditingController(text: initialGridOptions.gridLineWidth.toString());
+      bool isLoading = false;
+      final colorScheme = Theme.of(context).colorScheme;
 
-      return AlertDialog(
-        content: StatefulBuilder(builder: (BuildContext context, StateSetter setState) {
-          return SingleChildScrollView(
+      return StatefulBuilder(builder: (BuildContext context, StateSetter setState) {
+        return AlertDialog(
+          content: SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
                 Wrap(spacing: 8.0, runSpacing: 8.0, direction: Axis.horizontal, children: [
@@ -104,7 +106,7 @@ Future<void> showGridLinesPopup(
                                         ),
                                         actions: <Widget>[
                                           ElevatedButton(
-                                            child: const Text('Save'),
+                                            child: const Text("Save"),
                                             onPressed: () {
                                               Navigator.of(context).pop();
                                             },
@@ -122,36 +124,58 @@ Future<void> showGridLinesPopup(
                 ])
               ],
             ),
-          );
-        }),
-        actions: <Widget>[
-          TextButton(
-            child: const Text('Close'),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
           ),
-          FilledButton(
-            child: const Text('Update'),
-            onPressed: () {
-              int rowsParsed = int.tryParse(gridRowsController.text) ?? 1;
-              int columnsParsed = int.tryParse(gridColumnsController.text) ?? 1;
-              double lineWidthParsed = double.tryParse(gridLineWidthController.text) ?? 1;
-              if (rowsParsed < 1) {
-                rowsParsed = 1;
-              }
-              if (columnsParsed < 1) {
-                columnsParsed = 1;
-              }
-              if (lineWidthParsed <= 0) {
-                lineWidthParsed = 0.1;
-              }
-              onUpdate(rowsParsed, columnsParsed, lineWidthParsed, gridColor, showGrid);
-              Navigator.of(context).pop();
-            },
-          ),
-        ],
-      );
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Close'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            FilledButton(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  isLoading
+                      ? SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            color: colorScheme.inversePrimary,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : Container(),
+                  isLoading ? const SizedBox(width: 16) : Container(),
+                  const Text('Save'),
+                ],
+              ),
+              onPressed: () {
+                setState(() {
+                  isLoading = true;
+                });
+                int rowsParsed = int.tryParse(gridRowsController.text) ?? 1;
+                int columnsParsed = int.tryParse(gridColumnsController.text) ?? 1;
+                double lineWidthParsed = double.tryParse(gridLineWidthController.text) ?? 1;
+                if (rowsParsed < 1) {
+                  rowsParsed = 1;
+                }
+                if (columnsParsed < 1) {
+                  columnsParsed = 1;
+                }
+                if (lineWidthParsed <= 0) {
+                  lineWidthParsed = 0.1;
+                }
+                onUpdate(rowsParsed, columnsParsed, lineWidthParsed, gridColor, showGrid);
+                setState(() {
+                  isLoading = false;
+                });
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      });
     },
   );
 }
